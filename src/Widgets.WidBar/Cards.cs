@@ -14,7 +14,7 @@ namespace Widgets.WidBar;
 internal static class Cards
 {
     private const string Ns = "xmlns='http://schemas.microsoft.com/winfx/2006/xaml/presentation'";
-    private const double IconColumn = 40;
+    private const double IconColumn = 34;
     private const double RowHeight = 66;
 
     private static T Themed<T>(string xaml) where T : class => (T)XamlReader.Load(xaml);
@@ -58,6 +58,16 @@ internal static class Cards
         card.Padding = padding ?? new Thickness(16);
         card.Child = content;
         return card;
+    }
+
+    /// <summary>A recessed area inside a card, such as the one that holds the live preview.</summary>
+    public static Border Well(UIElement content, double minHeight = 80)
+    {
+        var well = Themed<Border>(
+            $"<Border {Ns} CornerRadius='4' Padding='12' Background='{{ThemeResource CardBackgroundFillColorSecondaryBrush}}'/>");
+        well.MinHeight = minHeight;
+        well.Child = content;
+        return well;
     }
 
     /// <summary>The inside of a row: icon, header with an optional description, and the control on the right.</summary>
@@ -139,7 +149,7 @@ internal static class Cards
         foreach (var row in rows)
         {
             var line = Themed<Border>(
-                $"<Border {Ns} BorderThickness='0,1,0,0' BorderBrush='{{ThemeResource DividerStrokeColorDefaultBrush}}' Padding='56,10,16,10' MinHeight='52'/>");
+                $"<Border {Ns} BorderThickness='0,1,0,0' BorderBrush='{{ThemeResource DividerStrokeColorDefaultBrush}}' Padding='58,10,56,10' MinHeight='52'/>");
             line.Child = row;
             body.Children.Add(line);
         }

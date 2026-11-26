@@ -14,7 +14,7 @@ namespace Widgets.WidBar;
 /// </summary>
 public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IWidgetFlyoutLifecycle
 {
-    private const double SidePadding = 4;
+    private const double SidePadding = PreviewBuilder.SidePadding;
     private const double DefaultSlotHeight = 48; // the taskbar's height, or about 26 with small taskbar buttons
 
     private BatteryWidgetSettings _settings = new();
@@ -114,31 +114,7 @@ public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IW
     {
         if (_row is null || _root is null) return;
 
-        var dark = _root.ActualTheme == ElementTheme.Dark;
-        var room = Math.Max(16, _slotHeight - 4);
-        var metrics = LookMetrics.For(PillStyle.Transparent, _settings.Appearance.Scale, Math.Min(32, room), room);
-        var tiles = new TileFactory(_settings, metrics, dark);
-
-        _row.Children.Clear();
-        var shown = Shown();
-        if (shown.Count == 0)
-        {
-            _row.Children.Add(new TextBlock
-            {
-                Text = "No batteries",
-                FontSize = metrics.FontSize,
-                Foreground = new Ink(dark).Secondary,
-                VerticalAlignment = VerticalAlignment.Center,
-            });
-        }
-        foreach (var m in shown)
-        {
-            if (_row.Children.Count > 0) _row.Children.Add(tiles.Divider());
-            _row.Children.Add(tiles.Build(m));
-        }
-
-        _row.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
-        var width = (int)Math.Ceiling(_row.DesiredSize.Width + SidePadding * 2);
+        var width = PreviewBuilder.Fill(_row, _settings, Shown(), _slotHeight, _root.ActualTheme == ElementTheme.Dark);
         if (width != _previewWidth)
         {
             _previewWidth = Math.Max(60, width);
