@@ -1,0 +1,144 @@
+name: Release
+
+# Builds the signed x64 + ARM64 MSIX bundle and publishes a GitHub Release.
+#
+#   git tag v0.4.0 && git push origin v0.4.0
+#
+# Pushing a tag like v0.4.0 builds the bundle and creates a Release for it.
+# Running the workflow by hand (Actions > Release > Run workflow) builds the bundle and keeps it as a
+# workflow artifact, without creating a Release; use that to check a build before tagging.
+#
+# Needs two repository secrets (build/New-ReleaseCert.ps1 creates the certificate and prints how to set them):
+#   SIGNING_CERT_BASE64    the .pfx certificate, base64 encoded
+#   SIGNING_CERT_PASSWORD  its password
+# Without them the workflow stops at the first step instead of publishing an unsigned package.
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to build, e.g. 0.4.0 (a tag push uses the tag instead)"
+        required: true
+
+permissions:
+  contents: write # needed to create the Release
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check the signing secrets exist
+        shell: pwsh
+        env:
+          CERT_BASE64: ${{ secrets.SIGNING_CERT_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
+        run: |
+          if (-not $env:CERT_BASE64 -or -not $env:CERT_PASSWORD) {
+            throw 'The repository secrets SIGNING_CERT_BASE64 and SIGNING_CERT_PASSWORD are not both set. Run build/New-ReleaseCert.ps1 and add them.'
+          }
+
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Set up the WinApp CLI
+        uses: microsoft/setup-WinAppCli@v0.3
+        with:
+          version: v0.8.0
+
+      - name: Run the tests
+        shell: pwsh
+        run: |
+          dotnet test tests/Widgets.Core.Tests
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet test tests/Widgets.Providers.Tests
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Stamp the version
+        id: ver
+        shell: pwsh
+        env:
+          MANUAL_VERSION: ${{ inputs.version }}
+        run: |
+          $raw = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME } else { $env:MANUAL_VERSION }
+          # Fails before anything is built when the tag is not X.Y.Z (with an optional -suffix).
+          $out = & ./build/Set-Version.ps1 -Version $raw
+          if ($LASTEXITCODE -ne 0) { throw "Version '$raw' was rejected by build/Set-Version.ps1." }
+          $out >> $env:GITHUB_OUTPUT
+          $out
+
+      - name: Build the signed bundle
+        id: bundle
+        shell: pwsh
+        env:
+          CERT_BASE64: ${{ secrets.SIGNING_CERT_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.SIGNING_CERT_PASSWORD }}
+        run: |
+          $pfx = Join-Path $env:RUNNER_TEMP 'signing.pfx'
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:CERT_BASE64))
+          $cert = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2($pfx, $env:CERT_PASSWORD)
+
+          # The package only installs when its Publisher equals the certificate subject exactly.
+          $publisher = ([xml](Get-Content src/Widgets.WidBar/Package.appxmanifest -Raw -Encoding UTF8)).Package.Identity.Publisher
+          if ($cert.Subject -ne $publisher) { throw "Certificate subject '$($cert.Subject)' differs from the manifest Publisher '$publisher'." }
+
+          $v = '${{ steps.ver.outputs.version }}'
+          New-Item -ItemType Directory -Force dist | Out-Null
+          ./build/package-widbar.ps1 -Cert $pfx -CertPassword $env:CERT_PASSWORD -Arch both -Output "dist/DeviceBatteries-$v.msixbundle"
+
+          # The public certificate, so people can trust the package when sideloading.
+          [IO.File]::WriteAllBytes("dist/DeviceBatteries-$v.cer", $cert.Export('Cert'))
+          Remove-Item $pfx -Force
+
+      - name: Write the release notes
+        shell: pwsh
+        run: |
+          $v = '${{ steps.ver.outputs.version }}'
+          @"
+          ## Install
+
+          1. Download **DeviceBatteries-$v.cer**, open it, choose **Install Certificate** > **Local Machine** and place it in **Trusted People**. This is needed once, because the package is signed with the project's own certificate.
+          2. Download and open **DeviceBatteries-$v.msixbundle**, then choose **Install**.
+          3. Open WidBar and add **Device batteries** from the catalog. If it is missing, press **Refresh** on the Layout page.
+
+          Requires Windows 11 and WidBar. The bundle holds x64 and ARM64 packages; Windows picks the right one.
+
+          ## Update
+
+          Download the newer **.msixbundle** and install it over the old one. The certificate only needs trusting once.
+          "@ | Set-Content dist/release-notes.md -Encoding utf8
+
+      - name: Keep the build as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeviceBatteries-${{ steps.ver.outputs.version }}
+          path: |
+            dist/*.msixbundle
+            dist/*.cer
+          if-no-files-found: error
+
+      - name: Publish the GitHub Release
+        if: ${{ github.ref_type == 'tag' }}
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Device batteries ${{ steps.ver.outputs.version }}
+          body_path: dist/release-notes.md
+          generate_release_notes: true
+          prerelease: ${{ steps.ver.outputs.prerelease == 'true' }}
+          files: |
+            dist/*.msixbundle
+            dist/*.cer
+          fail_on_unmatched_files: true

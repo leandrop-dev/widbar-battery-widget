@@ -1,5 +1,5 @@
 # Task: release-workflow
-Status: pending
+Status: done
 Deps: 04, 06, 07
 
 ## Goal
