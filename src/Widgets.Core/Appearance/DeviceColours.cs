@@ -2,11 +2,11 @@ using Widgets.Core.Settings;
 
 namespace Widgets.Core.Appearance;
 
-/// <summary>The colours one device is drawn in. <see cref="Accent"/> is the device's own colour, for a meter, capsule or ring.</summary>
+/// <summary>The colours one device is drawn in. <see cref="Accent"/> is the device's own colour, for a meter bar.</summary>
 public readonly record struct DeviceInk(Rgb Label, Rgb Icon, Rgb Value, Rgb Accent);
 
 /// <summary>
-/// The one rule for which colour a device gets, used by the taskbar layouts, the settings preview and the flyout so they
+/// The one rule for which colour a device gets, used by the taskbar layouts and the settings preview (the flyout joins them in phase 3) so they
 /// cannot disagree. The first of these wins: the colour the user gave this device, the Windows accent colour (when that
 /// option is on), the battery palette for its level, and the neutral text colour when there is no reading.
 /// </summary>

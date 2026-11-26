@@ -54,6 +54,7 @@ internal sealed class VerticalMetersLayout : ITileLayout
             text.Children.Add(TileParts.Text(TileParts.LabelOf(m, c), Math.Round(9 * k, 1), FontWeights.Bold, TileParts.Brush(ink.Label)));
 
         var valueLine = new StackPanel { Orientation = Orientation.Horizontal };
+        if (TileParts.LowMark(m, c, Math.Round(14 * k, 1), ink.Accent) is { } low) valueLine.Children.Add(low);
         valueLine.Children.Add(TileParts.ValueBlock(m, c, Math.Round(14 * k, 1), FontWeights.SemiBold, TileParts.Brush(ink.Value)));
         if (TileParts.Bolt(m, c, Math.Round(12 * k)) is { } bolt) valueLine.Children.Add(bolt);
         text.Children.Add(valueLine);

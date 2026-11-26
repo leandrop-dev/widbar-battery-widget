@@ -49,6 +49,7 @@ internal sealed class MinimalTextLayout : ITileLayout
             tile.Children.Add(label);
         }
 
+        if (TileParts.LowMark(m, c, Math.Round(14 * k, 1), ink.Accent) is { } low) tile.Children.Add(low);
         tile.Children.Add(TileParts.ValueBlock(m, c, Math.Round(14 * k, 1), FontWeights.SemiBold, TileParts.Brush(ink.Value)));
         if (TileParts.Bolt(m, c, Math.Round(12 * k)) is { } bolt) tile.Children.Add(bolt);
         return TileParts.Finish(tile, m, c);

@@ -37,4 +37,24 @@ public class DeviceStatusTests
     [InlineData(-30, "just now")]
     public void Ago_ChoosesTheLargestSensibleUnit(int seconds, string expected) =>
         Assert.Equal(expected, DeviceStatus.Ago(TimeSpan.FromSeconds(seconds)));
+
+    [Theory]
+    [InlineData(10, 20, true)]
+    [InlineData(20, 20, true)]
+    [InlineData(21, 20, false)]
+    [InlineData(90, 20, false)]
+    public void IsLow_IsAtOrBelowTheThreshold(double level, int threshold, bool expected) =>
+        Assert.Equal(expected, DeviceStatus.IsLow(Battery(level), threshold));
+
+    [Fact]
+    public void IsLow_IsFalseWithoutAFreshReadingOrWhileCharging()
+    {
+        Assert.False(DeviceStatus.IsLow(Battery(null), 20));
+        Assert.False(DeviceStatus.IsLow(Battery(5, stale: true), 20)); // a remembered value says nothing about now
+        Assert.False(DeviceStatus.IsLow(Battery(5, charging: true), 20));
+    }
+
+    [Fact]
+    public void Describe_NamesALowDeviceOnlyWhenTheCallerSaysSo() =>
+        Assert.Equal("Low battery", DeviceStatus.Describe(Battery(8), Now, lowAt: 20));
 }

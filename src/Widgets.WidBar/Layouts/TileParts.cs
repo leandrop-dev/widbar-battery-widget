@@ -79,12 +79,28 @@ internal static class TileParts
         };
     }
 
+    /// <summary>A bold "!" before the value of a low device, so the warning does not depend on colour (the device may have its own colour or the accent).</summary>
+    public static UIElement? LowMark(Metric m, TileContext c, double size, Rgb colour)
+    {
+        if (!DeviceStatus.IsLow(m, c.Settings.LowThreshold)) return null;
+        return new TextBlock
+        {
+            Text = "!",
+            FontSize = size,
+            FontWeight = Microsoft.UI.Text.FontWeights.Bold,
+            Foreground = Brush(colour),
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 0, 2, 0),
+            IsTextScaleFactorEnabled = false,
+        };
+    }
+
     /// <summary>A thin vertical line between two tiles.</summary>
     public static UIElement Divider(TileContext c, double height) => new Rectangle
     {
         Width = 1,
         Height = Math.Round(height),
-        Fill = Ink.Solid(PillTint.NeutralColor(c.Dark), 0.3),
+        Fill = Ink.Solid(Ink.Neutral(c.Dark), 0.3),
         VerticalAlignment = VerticalAlignment.Center,
     };
 
@@ -93,7 +109,7 @@ internal static class TileParts
     {
         tile.Opacity = m.Stale ? 0.5 : 1.0;
         var spoken = $"{LabelOf(m, c)} {ValueOf(m, c)}";
-        var status = DeviceStatus.Describe(m, DateTimeOffset.Now);
+        var status = DeviceStatus.Describe(m, DateTimeOffset.Now, c.Settings.LowThreshold);
         AutomationProperties.SetName(tile, string.IsNullOrEmpty(status) ? spoken : $"{spoken}, {status}");
         return tile;
     }

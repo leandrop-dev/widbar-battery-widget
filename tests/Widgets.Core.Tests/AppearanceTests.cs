@@ -196,62 +196,6 @@ public class BatteryColorsTests
     }
 }
 
-public class LookMetricsTests
-{
-    [Fact]
-    public void Transparent_HasDividersAndNoBackground()
-    {
-        var m = LookMetrics.For(PillStyle.Transparent, 100, 32, 44);
-        Assert.True(m.Dividers);
-        Assert.False(m.Background);
-        Assert.Equal(6, m.PadX);
-    }
-
-    [Fact]
-    public void Classic_HasABackgroundAndNoDividers()
-    {
-        var m = LookMetrics.For(PillStyle.Classic, 100, 32, 44);
-        Assert.True(m.Background);
-        Assert.False(m.Dividers);
-        Assert.Equal(7, m.Radius);
-        Assert.Equal(4, LookMetrics.For(PillStyle.Soft, 100, 32, 44).Radius);
-    }
-
-    [Fact]
-    public void Compact_IsTighterThanTransparent()
-    {
-        var c = LookMetrics.For(PillStyle.Compact, 100, 32, 44);
-        var t = LookMetrics.For(PillStyle.Transparent, 100, 32, 44);
-        Assert.True(c.PadX < t.PadX);
-        Assert.True(c.Gap < t.Gap);
-    }
-
-    [Fact]
-    public void Scale_GrowsTheHeightButNeverPastTheTaskbar()
-    {
-        Assert.Equal(32 * 1.15, LookMetrics.For(PillStyle.Classic, 115, 32, 60).Height, 6);
-        Assert.Equal(40, LookMetrics.For(PillStyle.Classic, 130, 32, 40).Height); // capped at what the taskbar allows
-    }
-
-    [Fact]
-    public void IconAndFontFollowTheHeightWithAFloor()
-    {
-        var m = LookMetrics.For(PillStyle.Classic, 100, 32, 44);
-        Assert.Equal(Math.Round(32 * 0.58), m.IconSize);
-        Assert.Equal(Math.Round(32 * 0.45), m.FontSize);
-        var small = LookMetrics.For(PillStyle.Classic, 90, 20, 44);
-        Assert.Equal(12, small.IconSize);
-        Assert.Equal(12, small.FontSize);
-    }
-
-    [Fact]
-    public void ClassicTintIsStrongerThanSoft()
-    {
-        Assert.True(PillTint.Neutral(PillStyle.Classic, true) > PillTint.Neutral(PillStyle.Soft, true));
-        Assert.Equal(0, PillTint.Neutral(PillStyle.Transparent, true));
-    }
-}
-
 public class BatteryWidgetSettingsTests
 {
     [Fact]

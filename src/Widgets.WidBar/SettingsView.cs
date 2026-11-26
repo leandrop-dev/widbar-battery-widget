@@ -17,7 +17,7 @@ namespace Widgets.WidBar;
 internal sealed class SettingsView
 {
     private const double PageWidth = 1056;
-    private const double SlotHeight = 48; // the preview card draws the taskbar's normal height
+    private readonly double _slotHeight; // the taskbar's real slot, so the card draws what the taskbar draws
 
     private readonly IWidgetSettingsContext _context;
     private readonly IReadOnlyList<Metric> _devices;
@@ -36,10 +36,11 @@ internal sealed class SettingsView
     private Expander? _customColours;
     private BatteryWidgetSettings _draft;
 
-    public SettingsView(IWidgetSettingsContext context, IReadOnlyList<Metric> devices)
+    public SettingsView(IWidgetSettingsContext context, IReadOnlyList<Metric> devices, double slotHeight)
     {
         _context = context;
         _devices = devices;
+        _slotHeight = slotHeight;
         _draft = BatteryWidgetSettings.FromJson(context.SettingsJson);
 
         var page = new StackPanel { Spacing = 6, MaxWidth = PageWidth, HorizontalAlignment = HorizontalAlignment.Stretch, Padding = new Thickness(0, 0, 0, 12) };
@@ -100,7 +101,7 @@ internal sealed class SettingsView
     private void RefreshPreview()
     {
         var shown = TileLayout.Apply(_devices, _draft.AsLayout());
-        var width = PreviewBuilder.Fill(_previewRow, _draft, shown, SlotHeight, _root.ActualTheme == ElementTheme.Dark);
+        var width = PreviewBuilder.Fill(_previewRow, _draft, shown, _slotHeight, _root.ActualTheme == ElementTheme.Dark);
         _previewWidth.Text = $"{width} px";
     }
 

@@ -75,7 +75,7 @@ public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IW
         return _flyout.Root;
     }
 
-    public UIElement? CreateSettingsContent(IWidgetSettingsContext context) => new SettingsView(context, BatteryHub.Snapshot()).Root;
+    public UIElement? CreateSettingsContent(IWidgetSettingsContext context) => new SettingsView(context, BatteryHub.Snapshot(), _slotHeight).Root;
 
     // WidBar calls this while the settings page is edited (so the taskbar follows along), after Save, and with the original JSON after Cancel.
     public override void OnSettingsDraftChanged(string settingsJson)

@@ -33,6 +33,7 @@ public sealed class AppearanceSettings
     public static readonly int[] Scales = [90, 100, 115, 130];
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
+    // No longer drawn (the layouts replaced the pill styles); kept so a file saved by an older build still reads and writes.
     public PillStyle Pill { get; set; } = PillStyle.Transparent;
 
     [JsonConverter(typeof(JsonStringEnumConverter))]

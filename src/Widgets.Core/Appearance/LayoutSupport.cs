@@ -26,7 +26,7 @@ public static class LayoutSupport
     public static bool Honours(PreviewLayout layout, PreviewOption option) => option switch
     {
         PreviewOption.Icons => layout == PreviewLayout.MinimalIcons,         // the other layouts draw no device icon
-        PreviewOption.Separators => layout == PreviewLayout.MinimalText,   // the others are tiles or a grid with their own gaps
+        PreviewOption.Separators => layout == PreviewLayout.MinimalText,   // the other layouts are tiles with their own gap
         _ => true,
     };
 }
