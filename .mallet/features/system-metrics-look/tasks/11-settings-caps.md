@@ -1,5 +1,5 @@
 # Task: settings-caps
-Status: pending
+Status: done
 Deps: 06, 10
 
 ## Goal

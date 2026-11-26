@@ -25,3 +25,4 @@ Preview (from the live preview card): vertical meter bar, a small coloured label
 
 ## Blockers
 <!-- - [ ] <description> (check off when resolved) -->
+<!-- 2026-11-26: Vertical meters bar widened from 5 to 6 px and its gap from 5 to 6 px after measuring System Metrics on a taskbar capture (bars were already the same 34 px tall). The taskbar can be captured with winapp ui screenshot -w <Shell_TrayWnd hwnd>; earlier notes saying it cannot are out of date. -->
