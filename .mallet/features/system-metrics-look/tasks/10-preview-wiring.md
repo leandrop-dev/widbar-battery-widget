@@ -1,5 +1,5 @@
 # Task: preview-wiring
-Status: pending
+Status: done
 Deps: 08, 09
 
 ## Goal

@@ -11,7 +11,7 @@ WidBar creates the flyout and settings windows (title bar, Save/Cancel, backdrop
 
 ## Phases
 1. Settings page: new options in the settings model and a System Metrics style page with a live preview card. (done)
-2. Preview layouts and options: the five System Metrics layouts, and every setting wired so it changes something visible.
+2. Preview layouts and options: three System Metrics style layouts (Vertical meters, Minimal text, Minimal icons), and every setting wired so it changes something visible.
 3. Flyout: tab strip (Summary plus one tab per device kind) and card layout.
 
 ## Tasks
@@ -20,14 +20,15 @@ WidBar creates the flyout and settings windows (title bar, Save/Cancel, backdrop
 - [x] 03-refresh-interval — make the poll interval settable and apply the smallest value among placed copies [deps: 01] [parallel: no] [phase: 1]
 - [x] 04-settings-page — rebuild the settings page: live preview card, Presentation, Devices and colors, Data refresh [deps: 01, 02, 03] [parallel: no] [phase: 1]
 - [x] 05-review-settings — review phase 1: the new settings model and page [deps: 01, 02, 03, 04] [parallel: no] [phase: 1] [review]
-- [x] 06-layout-model — five-layout enum with a lenient reader, per-layout option support, grid placement and arc geometry in Widgets.Core [deps: 05] [parallel: no] [phase: 2]
+- [x] 06-layout-model — three-layout enum with a lenient reader, per-layout option support, grid placement and arc geometry in Widgets.Core [deps: 05] [parallel: no] [phase: 2]
 - [x] 07-colour-resolver — one tested rule for which colour a device's label, icon and value get [deps: 06] [parallel: no] [phase: 2]
-- [x] 08-text-layouts — Minimal text and Icon matrix tile builders [deps: 06, 07] [parallel: no] [phase: 2]
-- [x] 09-graphic-layouts — Vertical meters, Fill capsules and Radial gauges tile builders [deps: 06, 07, 08] [parallel: no] [phase: 2]
-- [ ] 10-preview-wiring — dispatch to the layouts and apply spacing, alignment, width adjustment, separators and percent symbol [deps: 08, 09] [parallel: no] [phase: 2]
-- [ ] 11-settings-caps — settings page uses the five layouts, disables options a layout ignores, shows the real width and custom labels [deps: 06, 10] [parallel: no] [phase: 2]
+- [x] 08-text-layouts — Minimal text and Minimal icons tile builders [deps: 06, 07] [parallel: no] [phase: 2]
+- [x] 09-graphic-layouts — Vertical meters tile builder (Fill capsules and Radial gauges were dropped) [deps: 06, 07, 08] [parallel: no] [phase: 2]
+- [x] 10-preview-wiring — dispatch to the layouts and apply spacing, alignment, width adjustment, separators and percent symbol [deps: 08, 09] [parallel: no] [phase: 2]
+- [ ] 11-settings-caps — settings page uses the three layouts, disables options a layout ignores, shows the real width and custom labels [deps: 06, 10] [parallel: no] [phase: 2]
 - [ ] 12-review-preview — review phase 2: the layouts and that every option works [deps: 06, 07, 08, 09, 10, 11] [parallel: no] [phase: 2] [review]
 - [ ] 13-device-groups — group metrics into Summary plus per-kind tabs in Widgets.Core [deps: 12] [parallel: yes] [phase: 3]
 - [ ] 14-flyout-view — rebuild the flyout with a tab strip and device cards [deps: 12, 13] [parallel: no] [phase: 3]
 - [ ] 15-review-flyout — review phase 3: the grouping logic and the flyout [deps: 13, 14] [parallel: no] [phase: 3] [review]
 - [ ] 16-review-final — review the whole change: settings, preview and flyout now follow System Metrics' look [deps: 01–15] [parallel: no] [review]
+- [ ] 17-study-claude-usage — read github.com/Cheaterdev/widbar-claude-usage to learn how it packages, versions, releases and updates a WidBar widget, then decide what this widget adopts [deps: 16] [parallel: no]
