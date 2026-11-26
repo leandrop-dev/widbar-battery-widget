@@ -1,5 +1,5 @@
 # Feature: Match the System Metrics look
-Status: in progress
+Status: done
 Created: 2026-11-26
 Branch: f/system-metrics-look
 
@@ -31,4 +31,4 @@ WidBar creates the flyout and settings windows (title bar, Save/Cancel, backdrop
 - [x] 14-flyout-view — rebuild the flyout with a tab strip and device cards [deps: 12, 13] [parallel: no] [phase: 3]
 - [x] 15-review-flyout — review phase 3: the grouping logic and the flyout [deps: 13, 14] [parallel: no] [phase: 3] [review]
 - [x] 16-review-final — review the whole change: settings, preview and flyout now follow System Metrics' look [deps: 01–15] [parallel: no] [review]
-- [ ] 17-study-claude-usage — read github.com/Cheaterdev/widbar-claude-usage to learn how it packages, versions, releases and updates a WidBar widget, then decide what this widget adopts [deps: 16] [parallel: no]
+- [x] 17-study-claude-usage — read github.com/Cheaterdev/widbar-claude-usage to learn how it packages, versions, releases and updates a WidBar widget, then decide what this widget adopts [deps: 16] [parallel: no]

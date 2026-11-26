@@ -1,5 +1,5 @@
 # Task: study-claude-usage
-Status: pending
+Status: done
 Deps: 16
 
 ## Goal
