@@ -117,7 +117,7 @@ public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IW
         var width = PreviewBuilder.Fill(_row, _settings, Shown(), _slotHeight, _root.ActualTheme == ElementTheme.Dark);
         if (width != _previewWidth)
         {
-            _previewWidth = Math.Max(60, width);
+            _previewWidth = width; // already includes the width adjustment and the minimum
             Context?.RequestPreviewRefresh(); // WidBar reads PreviewLogicalWidth again and makes room
         }
     }

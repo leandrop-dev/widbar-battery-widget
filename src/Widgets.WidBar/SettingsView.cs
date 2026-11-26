@@ -98,7 +98,7 @@ internal sealed class SettingsView
     {
         var shown = TileLayout.Apply(_devices, _draft.AsLayout());
         var width = PreviewBuilder.Fill(_previewRow, _draft, shown, SlotHeight, _root.ActualTheme == ElementTheme.Dark);
-        _previewWidth.Text = $"{width} px - fits content";
+        _previewWidth.Text = $"{width} px";
     }
 
     private void BuildPresentation(StackPanel page)
