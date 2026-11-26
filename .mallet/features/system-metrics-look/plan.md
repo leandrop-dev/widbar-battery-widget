@@ -27,7 +27,7 @@ WidBar creates the flyout and settings windows (title bar, Save/Cancel, backdrop
 - [x] 10-preview-wiring — dispatch to the layouts and apply spacing, alignment, width adjustment, separators and percent symbol [deps: 08, 09] [parallel: no] [phase: 2]
 - [x] 11-settings-caps — settings page uses the three layouts, disables options a layout ignores, shows the real width and custom labels [deps: 06, 10] [parallel: no] [phase: 2]
 - [x] 12-review-preview — review phase 2: the layouts and that every option works [deps: 06, 07, 08, 09, 10, 11] [parallel: no] [phase: 2] [review]
-- [ ] 13-device-groups — group metrics into Summary plus per-kind tabs in Widgets.Core [deps: 12] [parallel: yes] [phase: 3]
+- [x] 13-device-groups — group metrics into Summary plus per-kind tabs in Widgets.Core [deps: 12] [parallel: yes] [phase: 3]
 - [ ] 14-flyout-view — rebuild the flyout with a tab strip and device cards [deps: 12, 13] [parallel: no] [phase: 3]
 - [ ] 15-review-flyout — review phase 3: the grouping logic and the flyout [deps: 13, 14] [parallel: no] [phase: 3] [review]
 - [ ] 16-review-final — review the whole change: settings, preview and flyout now follow System Metrics' look [deps: 01–15] [parallel: no] [review]
