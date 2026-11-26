@@ -1,5 +1,5 @@
 # Task: Review the layouts and the options
-Status: pending
+Status: done
 Deps: 06, 07, 08, 09, 10, 11
 Review: phase 2
 
