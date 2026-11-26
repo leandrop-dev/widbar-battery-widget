@@ -113,6 +113,26 @@ public class BatteryTests
         Assert.Equal(new byte[] { 0x00, 0xAA, 0x01 }, hid.Sent[0][..3]);
     }
 
+    [Fact]
+    public async Task Rival3_DroppedRequestIsAskedAgain()
+    {
+        var requests = 0;
+        var hid = new FakeHid([Info(0x1830)], _ => ++requests == 1 ? [] : [Reply(36, 0, 0)]);
+        var r = Assert.Single(await Reader(hid).ReadAsync(default));
+        Assert.Equal(36, r.Percent);
+        Assert.Equal(2, hid.Sent.Count);
+    }
+
+    [Fact]
+    public async Task Rival3_NeverAnsweringGivesUpWithinTheDeviceBudget()
+    {
+        var hid = new FakeHid([Info(0x1830)], _ => []);
+        var started = DateTime.UtcNow;
+        Assert.Empty(await Reader(hid).ReadAsync(default));
+        Assert.Equal(3, hid.Sent.Count);
+        Assert.True(DateTime.UtcNow - started < TimeSpan.FromMilliseconds(900));
+    }
+
     [Theory]
     [InlineData(0)]
     [InlineData(101)]

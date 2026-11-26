@@ -21,6 +21,7 @@ public sealed class SteelSeriesReader : IBatteryReader
     private const int VendorUsagePage = 0xFFC0, VendorUsage = 0x1;
     private const byte NovaStatus = 0xB0;
     private const int MaxUnrelatedReplies = 8;
+    private const int Attempts = 3;
 
     // Requests start with the HID report id; zero padding up to the interface's output report length is implied.
     private static readonly byte[] ReqNovaStatus = [0x00, 0xB0];
@@ -166,7 +167,7 @@ public sealed class SteelSeriesReader : IBatteryReader
     private async Task<BatteryReading?> ReadOneAsync(HidInfo info, Family family, CancellationToken ct)
     {
         using var h = _hid.Open(info);
-        var data = await QueryAsync(h, family, info.OutputReportLength, ct).ConfigureAwait(false);
+        var data = await QueryAsync(h, family, info.OutputReportLength, _perDevice / Attempts, ct).ConfigureAwait(false);
         if (data is null || family.Parse(data, info.Pid) is not { } p) return null;
 
         var id = $"steelseries:{info.Pid:x4}";
@@ -174,22 +175,33 @@ public sealed class SteelSeriesReader : IBatteryReader
         return new BatteryReading(id, name, family.Kind, p.Connected ? p.Percent : null, p.Connected && p.Charging, p.Connected);
     }
 
-    private static async Task<byte[]?> QueryAsync(IHidHandle h, Family family, int outLen, CancellationToken ct)
+    /// <summary>
+    /// Sends the request and waits for its reply. A dongle sometimes drops a request (the Rival 3 answered in about
+    /// 110 ms on 8 of 10 reads and not at all on the other 2), so the request is repeated a few times, each attempt
+    /// getting an equal share of the device's budget.
+    /// </summary>
+    private static async Task<byte[]?> QueryAsync(IHidHandle h, Family family, int outLen, TimeSpan attemptBudget, CancellationToken ct)
     {
         if (outLen < family.Request.Length) return null;
         var report = new byte[outLen];
         family.Request.CopyTo(report, 0);
 
-        await h.DrainAsync().ConfigureAwait(false);
-        if (!await h.WriteAsync(report, ct).ConfigureAwait(false)) return null;
-
-        for (var unrelated = 0; unrelated < MaxUnrelatedReplies; unrelated++)
+        for (var attempt = 0; attempt < Attempts && !ct.IsCancellationRequested; attempt++)
         {
-            var raw = await h.ReadAsync(ct).ConfigureAwait(false);
-            if (raw is null) return null; // budget used up
-            var data = Payload(raw);
-            if (data.Length >= family.MinReplyLength && (family.FirstByte is null || data[0] == family.FirstByte))
-                return data;
+            using var window = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            window.CancelAfter(attemptBudget);
+
+            await h.DrainAsync().ConfigureAwait(false);
+            if (!await h.WriteAsync(report, window.Token).ConfigureAwait(false)) continue;
+
+            for (var unrelated = 0; unrelated < MaxUnrelatedReplies; unrelated++)
+            {
+                var raw = await h.ReadAsync(window.Token).ConfigureAwait(false);
+                if (raw is null) break; // this attempt's share is used up: ask again
+                var data = Payload(raw);
+                if (data.Length >= family.MinReplyLength && (family.FirstByte is null || data[0] == family.FirstByte))
+                    return data;
+            }
         }
         return null;
     }
