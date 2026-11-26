@@ -16,3 +16,5 @@
 
 ## Blockers
 <!-- - [ ] <description> (check off when resolved) -->
+
+<!-- 2026-11-26 Phase 1 review (mallet:code-reviewer): approve, no blocking issues. Applied its two test notes: the consistency test no longer passes silently when the repository root is missing (RepoFiles finds the root by any *.slnx or .git), and each id is read from exactly one precise place (C# `override string Id =>` must match once; XML ids come from the single WidBarPluginId element, comments ignored). Mutation-checked: changing one id makes the test fail. Not done by it: the run-time check of how WidBar treats the changed id, which is the user's step 6 of task 01 (re-add the widget from WidBar's Layout page). Noted: version strings still disagree (MainPlugin.Version "0.3.1", csproj WidBarPluginVersion 0.2.0, manifest 0.3.4.0, so the generated plugin.json says 0.2.0); task 06 (version stamping) must stamp all three. -->

@@ -15,8 +15,8 @@ The packaging study (system-metrics-look state.md, "Packaging study") found that
 3. Release: version stamping from a tag, a dedicated release certificate, the GitHub Actions workflow and a first release installed from it.
 
 ## Tasks
-- [ ] 01-plugin-id — set com.codemonk.devicebattery in the plugin class, manifest and csproj, with a test that the three agree [deps: —] [parallel: no] [phase: 1]
-- [ ] 02-review-id — review phase 1: the id change and its consistency test [deps: 01] [parallel: no] [phase: 1] [review]
+- [x] 01-plugin-id — set com.codemonk.devicebattery in the plugin class, manifest and csproj, with a test that the three agree [deps: —] [parallel: no] [phase: 1]
+- [x] 02-review-id — review phase 1: the id change and its consistency test [deps: 01] [parallel: no] [phase: 1] [review]
 - [ ] 03-bundle-spike — find out whether winapp and makeappx can build ARM64 and a bundle here and on a GitHub runner [deps: 02] [parallel: no] [phase: 2]
 - [ ] 04-bundle-script — commit the publish profiles and make build/package-widbar.ps1 produce a signed .msixbundle [deps: 03] [parallel: no] [phase: 2]
 - [ ] 05-review-bundle — review phase 2: the profiles and the bundle script [deps: 03, 04] [parallel: no] [phase: 2] [review]

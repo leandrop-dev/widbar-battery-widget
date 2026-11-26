@@ -1,5 +1,5 @@
 # Task: plugin-id
-Status: pending
+Status: done
 Deps: —
 
 ## Goal

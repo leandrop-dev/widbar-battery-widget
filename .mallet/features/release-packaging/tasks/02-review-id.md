@@ -1,5 +1,5 @@
 # Task: Review the plugin id change
-Status: pending
+Status: done
 Deps: 01
 Review: phase 1
 
