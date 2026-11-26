@@ -6,7 +6,7 @@ namespace Widgets.Core.Settings;
 /// <summary>
 /// What a placed copy of the battery widget stores as its settings JSON: which devices show and in what order, and how the
 /// tiles look. The theme and the material behind the widget come from the host, so only the parts of
-/// <see cref="AppearanceSettings"/> that describe the tiles themselves are used (icons, palette, size, names).
+/// <see cref="AppearanceSettings"/> that describe the tiles themselves are used (layout, icons, palette, size, spacing, colours, names).
 /// </summary>
 public sealed class BatteryWidgetSettings
 {

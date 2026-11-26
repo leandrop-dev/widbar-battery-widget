@@ -65,6 +65,7 @@ internal sealed class SettingsView
         _draft = BatteryWidgetSettings.Sanitize(_draft);
         _context.SaveSettings(_draft.ToJson());
         _context.RequestPreviewRefresh(); // the width depends on every one of these settings
+        ApplyLayoutSupport(); // what a setting makes pointless depends on the other settings
         RefreshPreview();
     }
 
@@ -158,13 +159,13 @@ internal sealed class SettingsView
     /// <summary>Greys out, and says so, the options the chosen layout does not draw, so no switch quietly does nothing.</summary>
     private void ApplyLayoutSupport()
     {
-        var layout = _draft.Appearance.Layout;
         foreach (var (option, row, normal) in _optionRows)
         {
-            var used = LayoutSupport.Honours(layout, option);
+            var reason = LayoutSupport.Unused(_draft.Appearance, option);
+            var used = reason is null;
             foreach (var control in Cards.Descendants(row).OfType<Control>()) control.IsEnabled = used;
             row.Opacity = used ? 1 : 0.5;
-            Cards.SetDescription(row, used ? normal : "Not used by this layout");
+            Cards.SetDescription(row, reason ?? normal);
         }
     }
 
@@ -176,7 +177,7 @@ internal sealed class SettingsView
         page.Children.Add(Cards.ToggleRow("", "Windows accent color", "One color for every device instead of the battery colors",
             look.UseAccentColour, on => Change(a => a.UseAccentColour = on)));
 
-        page.Children.Add(Cards.Row("", "Battery colors", "How a level is colored: high, medium and low",
+        page.Children.Add(Track(PreviewOption.BatteryColours, "How a level is colored: high, medium and low", Cards.Row("", "Battery colors", "How a level is colored: high, medium and low",
             Combo("Battery colors",
                 [("Classic", nameof(BatteryPalette.Classic)), ("Colour-blind", nameof(BatteryPalette.ColourBlind)), ("Pastel", nameof(BatteryPalette.Pastel)),
                     ("High contrast", nameof(BatteryPalette.HighContrast)), ("Mono", nameof(BatteryPalette.Mono)), ("Custom", nameof(BatteryPalette.Custom))],
@@ -185,7 +186,7 @@ internal sealed class SettingsView
                 {
                     Change(a => a.Palette = Enum.Parse<BatteryPalette>(tag));
                     if (_customColours is not null) _customColours.Visibility = tag == nameof(BatteryPalette.Custom) ? Visibility.Visible : Visibility.Collapsed;
-                })));
+                }))));
 
         _customColours = Cards.Expander("", "Custom colors", "#RRGGBB for each level",
         [
@@ -194,7 +195,7 @@ internal sealed class SettingsView
             ColourField("Low", _draft.Appearance.CustomLow, (a, v) => a.CustomLow = v),
         ]);
         _customColours.Visibility = look.Palette == BatteryPalette.Custom ? Visibility.Visible : Visibility.Collapsed;
-        page.Children.Add(_customColours);
+        page.Children.Add(Track(PreviewOption.BatteryColours, "#RRGGBB for each level", _customColours));
 
         page.Children.Add(Cards.Row("", "Low battery", "Flag a device at or below this level (%)",
             Number("Flag a device as low at or below (%)", 5, 50, _draft.LowThreshold, 5, v => ChangeSettings(s => s.LowThreshold = v))));
@@ -206,7 +207,7 @@ internal sealed class SettingsView
     private void BuildDataRefresh(StackPanel page)
     {
         page.Children.Add(Cards.Section("Data refresh"));
-        page.Children.Add(Cards.Row("", "Refresh interval", "A slower interval reduces background activity. Minutes, 1 to 10.",
+        page.Children.Add(Cards.Row("", "Refresh interval", "A slower interval reduces background activity. Minutes, 1 to 10. With several copies placed, the fastest one sets the pace.",
             Number("Refresh interval (minutes)", 1, 10, _draft.RefreshMinutes, 1, v => ChangeSettings(s => s.RefreshMinutes = v))));
     }
 

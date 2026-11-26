@@ -15,6 +15,7 @@ public enum PreviewOption
     Spacing,
     Alignment,
     ValueSize,
+    BatteryColours,
 }
 
 /// <summary>
@@ -29,4 +30,21 @@ public static class LayoutSupport
         PreviewOption.Separators => layout == PreviewLayout.MinimalText,   // the other layouts are tiles with their own gap
         _ => true,
     };
+
+    /// <summary>
+    /// Why <paramref name="option"/> would change nothing with these settings, or null when it is used. The layout is
+    /// checked first, then the settings that make the option pointless: alignment with no spare width, a colour for a
+    /// label that is not drawn, and the battery palette while one accent colour overrides it.
+    /// </summary>
+    public static string? Unused(AppearanceSettings look, PreviewOption option)
+    {
+        if (!Honours(look.Layout, option)) return "Not used by this layout";
+        return option switch
+        {
+            PreviewOption.Alignment when look.WidthAdjustment == 0 => "Used when the width adjustment adds room",
+            PreviewOption.ColouredLabelsAndIcons when !look.ShowNames && look.Layout != PreviewLayout.MinimalIcons => "Needs metric labels or icons",
+            PreviewOption.BatteryColours when look.UseAccentColour => "Not used while Windows accent color is on",
+            _ => null,
+        };
+    }
 }

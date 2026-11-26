@@ -79,3 +79,51 @@ public class LayoutSupportTests
     }
 }
 
+
+public class OptionUseTests
+{
+    private static AppearanceSettings Look(Action<AppearanceSettings>? change = null)
+    {
+        var a = new AppearanceSettings();
+        change?.Invoke(a);
+        return a;
+    }
+
+    [Fact]
+    public void AlignmentNeedsRoomToMoveIn()
+    {
+        Assert.Equal("Used when the width adjustment adds room", LayoutSupport.Unused(Look(), PreviewOption.Alignment));
+        Assert.Null(LayoutSupport.Unused(Look(a => a.WidthAdjustment = 40), PreviewOption.Alignment));
+        Assert.Null(LayoutSupport.Unused(Look(a => a.WidthAdjustment = -40), PreviewOption.Alignment)); // decides which side is clipped
+    }
+
+    [Theory]
+    [InlineData(PreviewLayout.VerticalMeters, true, false)]
+    [InlineData(PreviewLayout.VerticalMeters, false, true)]
+    [InlineData(PreviewLayout.MinimalText, false, true)]
+    [InlineData(PreviewLayout.MinimalIcons, false, false)] // the icon still takes the colour
+    public void ColouredLabelsAndIconsNeedsALabelOrAnIcon(PreviewLayout layout, bool names, bool unused)
+    {
+        var a = Look(x => { x.Layout = layout; x.ShowNames = names; });
+        Assert.Equal(unused, LayoutSupport.Unused(a, PreviewOption.ColouredLabelsAndIcons) is not null);
+    }
+
+    [Fact]
+    public void BatteryColoursAreUnusedWhileTheWindowsAccentIsOn()
+    {
+        Assert.Null(LayoutSupport.Unused(Look(), PreviewOption.BatteryColours));
+        Assert.Equal("Not used while Windows accent color is on",
+            LayoutSupport.Unused(Look(a => a.UseAccentColour = true), PreviewOption.BatteryColours));
+    }
+
+    [Fact]
+    public void ALayoutReasonComesFirst() =>
+        Assert.Equal("Not used by this layout", LayoutSupport.Unused(Look(a => a.Layout = PreviewLayout.VerticalMeters), PreviewOption.Icons));
+
+    [Fact]
+    public void HonoursByLayoutAloneStillAnswersForBatteryColours()
+    {
+        foreach (var l in Enum.GetValues<PreviewLayout>())
+            Assert.True(LayoutSupport.Honours(l, PreviewOption.BatteryColours));
+    }
+}

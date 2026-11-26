@@ -18,7 +18,7 @@ public enum ThemeChoice { Auto, Light, Dark }
 /// <summary>Acrylic is the standard frosted-glass bar. Adjustable is the same glass with a strength the user sets.</summary>
 public enum BackgroundStyle { Acrylic, Adjustable }
 
-/// <summary>How the taskbar preview is laid out: the layouts of WidBar's System Metrics widget, minus its history graph.</summary>
+/// <summary>How the taskbar preview is laid out: two of WidBar's System Metrics layouts (vertical meters, minimal text) and a minimal-text variant with icons.</summary>
 public enum PreviewLayout { VerticalMeters, MinimalText, MinimalIcons }
 
 /// <summary>The space between two tiles of the preview.</summary>
