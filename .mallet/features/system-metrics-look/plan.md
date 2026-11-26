@@ -29,6 +29,6 @@ WidBar creates the flyout and settings windows (title bar, Save/Cancel, backdrop
 - [x] 12-review-preview — review phase 2: the layouts and that every option works [deps: 06, 07, 08, 09, 10, 11] [parallel: no] [phase: 2] [review]
 - [x] 13-device-groups — group metrics into Summary plus per-kind tabs in Widgets.Core [deps: 12] [parallel: yes] [phase: 3]
 - [x] 14-flyout-view — rebuild the flyout with a tab strip and device cards [deps: 12, 13] [parallel: no] [phase: 3]
-- [ ] 15-review-flyout — review phase 3: the grouping logic and the flyout [deps: 13, 14] [parallel: no] [phase: 3] [review]
+- [x] 15-review-flyout — review phase 3: the grouping logic and the flyout [deps: 13, 14] [parallel: no] [phase: 3] [review]
 - [ ] 16-review-final — review the whole change: settings, preview and flyout now follow System Metrics' look [deps: 01–15] [parallel: no] [review]
 - [ ] 17-study-claude-usage — read github.com/Cheaterdev/widbar-claude-usage to learn how it packages, versions, releases and updates a WidBar widget, then decide what this widget adopts [deps: 16] [parallel: no]
