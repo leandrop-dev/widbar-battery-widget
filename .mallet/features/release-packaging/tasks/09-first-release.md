@@ -1,5 +1,5 @@
 # Task: first-release
-Status: pending
+Status: done
 Deps: 08
 
 ## Goal
