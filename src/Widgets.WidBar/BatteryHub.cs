@@ -13,6 +13,9 @@ internal static class BatteryHub
     private static readonly object Gate = new();
     private static MetricStore? _store;
     private static MetricScheduler? _scheduler;
+    private static BatteryProvider? _provider;
+    private static readonly IntervalVotes Votes = new();
+    private static readonly TimeSpan DefaultInterval = TimeSpan.FromSeconds(60);
 
     /// <summary>Raised on a background thread after every poll. Marshal to the UI thread before touching XAML.</summary>
     public static event Action? Changed;
@@ -27,14 +30,41 @@ internal static class BatteryHub
         {
             if (_scheduler is not null) return;
             var hid = new WindowsHid();
-            var provider = new BatteryProvider(
+            _provider = new BatteryProvider(
                 [new SteelSeriesReader(hid), new DualSenseReader(hid), new XInputReader(), new BluetoothLeBatteryReader()],
+                interval: Votes.Effective(DefaultInterval),
                 cache: new BatteryCache(Path.Combine(sharedDataDirectory, "battery-cache.json")));
             _store = new MetricStore();
             _store.Changed += () => Changed?.Invoke();
-            _scheduler = new MetricScheduler([provider], _store);
+            _scheduler = new MetricScheduler([_provider], _store);
             _scheduler.Start();
         }
+    }
+
+    /// <summary>
+    /// Records how often one placed copy wants the batteries read (1 to 10 minutes). The shared poller runs at the smallest
+    /// value among the copies. Safe to call before <see cref="Start"/>: the vote is used when polling begins.
+    /// </summary>
+    public static void SetRefresh(string instanceId, int minutes)
+    {
+        Votes.Set(instanceId, TimeSpan.FromMinutes(Math.Clamp(minutes, 1, 10)));
+        ApplyInterval();
+    }
+
+    /// <summary>Withdraws a copy's vote when it is removed from the taskbar.</summary>
+    public static void ClearRefresh(string instanceId)
+    {
+        Votes.Remove(instanceId);
+        ApplyInterval();
+    }
+
+    private static void ApplyInterval()
+    {
+        if (_provider is null) return;
+        var next = Votes.Effective(DefaultInterval);
+        if (_provider.Interval == next) return;
+        _provider.Interval = next;
+        Refresh(); // the scheduler is waiting out the old interval; a nudge makes it wait the new one
     }
 
     /// <summary>Asks for a poll now instead of waiting for the next one.</summary>

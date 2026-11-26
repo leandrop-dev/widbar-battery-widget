@@ -42,7 +42,15 @@ public sealed class BatteryProvider : IProvider
     }
 
     public string Id => "battery";
-    public TimeSpan Interval { get; }
+
+    private long _intervalTicks;
+
+    /// <summary>How often the scheduler polls. It reads this before every wait, so a new value applies from the next one.</summary>
+    public TimeSpan Interval
+    {
+        get => TimeSpan.FromTicks(Volatile.Read(ref _intervalTicks));
+        set => Volatile.Write(ref _intervalTicks, value.Ticks);
+    }
 
     public async Task<IReadOnlyList<Metric>> PollAsync(CancellationToken ct)
     {
