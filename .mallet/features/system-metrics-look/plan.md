@@ -22,7 +22,7 @@ WidBar creates the flyout and settings windows (title bar, Save/Cancel, backdrop
 - [x] 05-review-settings — review phase 1: the new settings model and page [deps: 01, 02, 03, 04] [parallel: no] [phase: 1] [review]
 - [x] 06-layout-model — five-layout enum with a lenient reader, per-layout option support, grid placement and arc geometry in Widgets.Core [deps: 05] [parallel: no] [phase: 2]
 - [x] 07-colour-resolver — one tested rule for which colour a device's label, icon and value get [deps: 06] [parallel: no] [phase: 2]
-- [ ] 08-text-layouts — Minimal text and Icon matrix tile builders [deps: 06, 07] [parallel: no] [phase: 2]
+- [x] 08-text-layouts — Minimal text and Icon matrix tile builders [deps: 06, 07] [parallel: no] [phase: 2]
 - [ ] 09-graphic-layouts — Vertical meters, Fill capsules and Radial gauges tile builders [deps: 06, 07, 08] [parallel: no] [phase: 2]
 - [ ] 10-preview-wiring — dispatch to the layouts and apply spacing, alignment, width adjustment, separators and percent symbol [deps: 08, 09] [parallel: no] [phase: 2]
 - [ ] 11-settings-caps — settings page uses the five layouts, disables options a layout ignores, shows the real width and custom labels [deps: 06, 10] [parallel: no] [phase: 2]

@@ -1,5 +1,5 @@
 # Task: text-layouts
-Status: pending
+Status: done
 Deps: 06, 07
 
 ## Goal
