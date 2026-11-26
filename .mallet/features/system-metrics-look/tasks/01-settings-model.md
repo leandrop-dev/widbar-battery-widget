@@ -1,5 +1,5 @@
 # Task: settings-model
-Status: pending
+Status: done
 Deps: —
 
 ## Goal
