@@ -60,11 +60,16 @@ internal static class BatteryHub
 
     private static void ApplyInterval()
     {
-        if (_provider is null) return;
-        var next = Votes.Effective(DefaultInterval);
-        if (_provider.Interval == next) return;
-        _provider.Interval = next;
-        Refresh(); // the scheduler is waiting out the old interval; a nudge makes it wait the new one
+        // Under the same lock as Start: a vote that arrives while the first copy is still building the provider is read
+        // by Start, and two copies changing their votes at once cannot leave the poller on an out-of-date interval.
+        lock (Gate)
+        {
+            if (_provider is null) return;
+            var next = Votes.Effective(DefaultInterval);
+            if (_provider.Interval == next) return;
+            _provider.Interval = next;
+            Refresh(); // the scheduler is waiting out the old interval; a nudge makes it wait the new one
+        }
     }
 
     /// <summary>Asks for a poll now instead of waiting for the next one.</summary>

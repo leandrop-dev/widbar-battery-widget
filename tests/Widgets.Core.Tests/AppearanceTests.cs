@@ -360,6 +360,29 @@ public class BatteryWidgetSettingsTests
         Assert.False(s.Colours.ContainsKey(" "));
     }
 
+    [Theory]
+    [InlineData("""{ "Order": null }""")]
+    [InlineData("""{ "Hidden": null }""")]
+    [InlineData("""{ "Appearance": null }""")]
+    [InlineData("""{ "Order": null, "Hidden": null, "Appearance": null, "Labels": null, "Colours": null }""")]
+    public void FromJson_NullListsAndAppearanceMeanDefaults(string json)
+    {
+        var s = BatteryWidgetSettings.FromJson(json);
+        Assert.Empty(s.Order);
+        Assert.Empty(s.Hidden);
+        Assert.Equal(PreviewLayout.VerticalMeters, s.Appearance.Layout);
+        Assert.Equal(20, s.LowThreshold);
+    }
+
+    [Fact]
+    public void Sanitize_KeepsALabelWhole_WhenAnEmojiStraddlesTheLimit()
+    {
+        var label = new string('x', BatteryWidgetSettings.MaxLabelLength - 1) + "\U0001F3A7"; // the emoji is two UTF-16 units
+        var s = BatteryWidgetSettings.Sanitize(new BatteryWidgetSettings { Labels = new() { ["a"] = label } });
+        Assert.False(char.IsHighSurrogate(s.Labels["a"][^1]));
+        Assert.True(s.Labels["a"].Length <= BatteryWidgetSettings.MaxLabelLength);
+    }
+
     [Fact]
     public void FromJson_NullDeviceOverridesMeanNone()
     {

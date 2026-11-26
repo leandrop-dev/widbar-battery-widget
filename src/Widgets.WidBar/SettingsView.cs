@@ -280,7 +280,7 @@ internal sealed class SettingsView
             var expander = Cards.Expander(GlyphFor(device.Icon), device.Label, MetricFormat.Value(device),
             [
                 Cards.Field("Label", LabelBox(id, device.Label)),
-                Cards.Field("Color", ColourBox(id)),
+                Cards.Field("Color", ColourBox(id, device.Label)),
                 Cards.Field("Order", MoveButtons(id, device.Label, ids, i > 0, i < ordered.Count - 1)),
             ], shown);
             expander.IsExpanded = _openDevices.Contains(id);
@@ -314,7 +314,7 @@ internal sealed class SettingsView
         return box;
     }
 
-    private UIElement ColourBox(string id)
+    private UIElement ColourBox(string id, string deviceName)
     {
         var swatch = new Microsoft.UI.Xaml.Controls.Border { Width = 20, Height = 20, CornerRadius = new CornerRadius(4), VerticalAlignment = VerticalAlignment.Center };
         AutomationProperties.SetAccessibilityView(swatch, Microsoft.UI.Xaml.Automation.Peers.AccessibilityView.Raw);
@@ -325,7 +325,7 @@ internal sealed class SettingsView
             MaxLength = 7,
             Width = 120,
         };
-        AutomationProperties.SetName(box, "Color");
+        AutomationProperties.SetName(box, $"Color for {deviceName}");
 
         void Paint() => swatch.Background = Hex.TryParse(box.Text, out var c) ? Ink.Solid(c) : null;
         void Commit()

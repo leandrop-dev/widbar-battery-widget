@@ -37,7 +37,7 @@ public sealed class BatteryWidgetSettings
 
     public BatteryWidgetSettings Clone() => new()
     {
-        Order = [.. Order], Hidden = [.. Hidden], Appearance = Appearance.Clone(), LowThreshold = LowThreshold,
+        Order = [.. Order ?? []], Hidden = [.. Hidden ?? []], Appearance = (Appearance ?? new AppearanceSettings()).Clone(), LowThreshold = LowThreshold,
         Labels = new(Labels ?? [], StringComparer.Ordinal), Colours = new(Colours ?? [], StringComparer.Ordinal), RefreshMinutes = RefreshMinutes,
     };
 
@@ -90,7 +90,13 @@ public sealed class BatteryWidgetSettings
         {
             var trimmed = (label ?? "").Trim();
             if (string.IsNullOrWhiteSpace(id) || trimmed.Length == 0) continue;
-            next.Labels[id] = trimmed.Length > MaxLabelLength ? trimmed[..MaxLabelLength] : trimmed;
+            if (trimmed.Length > MaxLabelLength)
+            {
+                // Never cut between the two halves of a surrogate pair (an emoji): that leaves a box.
+                var keep = char.IsHighSurrogate(trimmed[MaxLabelLength - 1]) ? MaxLabelLength - 1 : MaxLabelLength;
+                trimmed = trimmed[..keep];
+            }
+            next.Labels[id] = trimmed;
         }
 
         next.Colours = [];

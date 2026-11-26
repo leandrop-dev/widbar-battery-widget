@@ -174,7 +174,8 @@ internal static class Cards
             fe.VerticalAlignment = VerticalAlignment.Center;
             fe.HorizontalAlignment = HorizontalAlignment.Right;
             Grid.SetColumn(fe, 1);
-            AutomationProperties.SetName(fe, label);
+            // A control the caller already named (for example "Label for Rival 3") keeps its more specific name.
+            if (string.IsNullOrEmpty(AutomationProperties.GetName(fe))) AutomationProperties.SetName(fe, label);
             grid.Children.Add(fe);
         }
         return grid;
