@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap uap3 rescap">
+
+  <Identity
+    Name="DeviceBatteries.WidBarWidget"
+    Publisher="CN=Leandro Paixão"
+    Version="0.2.0.0" />
+
+  <Properties>
+    <DisplayName>Device batteries (evaluation)</DisplayName>
+    <PublisherDisplayName>Leandro Paixão</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26226.0" />
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.26226.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="x-generate"/>
+  </Resources>
+
+  <Applications>
+    <Application Id="App"
+      Executable="$targetnametoken$.exe"
+      EntryPoint="$targetentrypoint$">
+      <uap:VisualElements
+        DisplayName="Device batteries"
+        Description="Headset, mouse and controller battery levels."
+        BackgroundColor="transparent"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+        <uap:SplashScreen Image="Assets\SplashScreen.png" />
+      </uap:VisualElements>
+      <Extensions>
+        <uap3:Extension Category="windows.appExtension">
+          <uap3:AppExtension
+            Name="com.widbar.widget"
+            Id="devicebatteries"
+            PublicFolder="Public"
+            DisplayName="Device batteries"
+            Description="Headset, mouse and controller battery levels.">
+            <uap3:Properties>
+              <WidBarPluginId>com.example.devicebatteries</WidBarPluginId>
+              <WidBarSdkVersion>2</WidBarSdkVersion>
+            </uap3:Properties>
+          </uap3:AppExtension>
+        </uap3:Extension>
+      </Extensions>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>

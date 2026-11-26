@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Widgets.Core/Widgets.Core.csproj" />
+    <Project Path="src/Widgets.Providers/Widgets.Providers.csproj" />
+    <Project Path="src/Widgets.WidBar/Widgets.WidBar.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Widgets.Core.Tests/Widgets.Core.Tests.csproj" />
+    <Project Path="tests/Widgets.Providers.Tests/Widgets.Providers.Tests.csproj" />
+  </Folder>
+</Solution>

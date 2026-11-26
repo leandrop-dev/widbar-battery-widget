@@ -1,0 +1,68 @@
+using System.Text.Json;
+
+namespace Widgets.Core.Settings;
+
+/// <summary>
+/// What a placed copy of the battery widget stores as its settings JSON: which devices show and in what order, and how the
+/// tiles look. The theme and the material behind the widget come from the host, so only the parts of
+/// <see cref="AppearanceSettings"/> that describe the tiles themselves are used (icons, palette, size, names).
+/// </summary>
+public sealed class BatteryWidgetSettings
+{
+    private static readonly JsonSerializerOptions Json = new() { WriteIndented = false, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never };
+
+    /// <summary>Device metric ids in the order the user wants them. Ids that are not listed follow, in provider order.</summary>
+    public List<string> Order { get; set; } = [];
+
+    /// <summary>Device metric ids the user turned off.</summary>
+    public List<string> Hidden { get; set; } = [];
+
+    public AppearanceSettings Appearance { get; set; } = new();
+
+    /// <summary>A device at or below this level (percent) is flagged as low.</summary>
+    public int LowThreshold { get; set; } = 20;
+
+    public BatteryWidgetSettings Clone() => new()
+    {
+        Order = [.. Order], Hidden = [.. Hidden], Appearance = Appearance.Clone(), LowThreshold = LowThreshold,
+    };
+
+    /// <summary>The order and visibility as the general layout settings, so <see cref="TileLayout"/> can be reused.</summary>
+    public WidgetSettings AsLayout() => new() { Order = [.. Order], Hidden = [.. Hidden] };
+
+    /// <summary>This settings object with the order and hidden lists taken from <paramref name="layout"/>.</summary>
+    public BatteryWidgetSettings WithLayout(WidgetSettings layout)
+    {
+        var next = Clone();
+        next.Order = [.. layout.Order];
+        next.Hidden = [.. layout.Hidden];
+        return next;
+    }
+
+    /// <summary>Reads settings leniently: an empty, missing or damaged string means defaults, unknown fields are ignored, and every value is forced into range.</summary>
+    public static BatteryWidgetSettings FromJson(string? json)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(json)) return new BatteryWidgetSettings();
+            var s = JsonSerializer.Deserialize<BatteryWidgetSettings>(json, Json);
+            return s is null ? new BatteryWidgetSettings() : Sanitize(s);
+        }
+        catch (JsonException)
+        {
+            return new BatteryWidgetSettings();
+        }
+    }
+
+    public string ToJson() => JsonSerializer.Serialize(this, Json);
+
+    public static BatteryWidgetSettings Sanitize(BatteryWidgetSettings s)
+    {
+        var next = s.Clone();
+        next.Order = [.. (s.Order ?? []).Where(id => !string.IsNullOrWhiteSpace(id)).Distinct(StringComparer.Ordinal)];
+        next.Hidden = [.. (s.Hidden ?? []).Where(id => !string.IsNullOrWhiteSpace(id)).Distinct(StringComparer.Ordinal)];
+        next.Appearance = AppearanceSettings.Sanitize(s.Appearance ?? new AppearanceSettings());
+        next.LowThreshold = Math.Clamp(s.LowThreshold, 5, 50);
+        return next;
+    }
+}

@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.22621.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+    <UseWinUI>true</UseWinUI>
+    <WinUISDKReferences>false</WinUISDKReferences>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Widgets.WidBar</RootNamespace>
+    <AssemblyName>DeviceBatteries.Widget</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <Platforms>x64</Platforms>
+    <RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+    <SelfContained>true</SelfContained>
+    <WindowsAppSDKSelfContained>false</WindowsAppSDKSelfContained>
+    <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+    <EnableMsixTooling>true</EnableMsixTooling>
+    <AppxPackageSigningEnabled>false</AppxPackageSigningEnabled>
+    <PublishProfile Condition="Exists('Properties\PublishProfiles\win-$(Platform).pubxml')">win-$(Platform).pubxml</PublishProfile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <WidBarPluginId>com.example.devicebatteries</WidBarPluginId>
+    <WidBarPluginName>Device batteries</WidBarPluginName>
+    <WidBarPluginDescription>Headset, mouse and controller battery levels.</WidBarPluginDescription>
+    <WidBarPluginCategory>Utility</WidBarPluginCategory>
+    <WidBarPluginVersion>0.2.0</WidBarPluginVersion>
+    <WidBarPluginPreviewWidth>420</WidBarPluginPreviewWidth>
+    <WidBarPluginConfigurable>true</WidBarPluginConfigurable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Assets\*.png" />
+    <Content Include="obj\widbar\plugin.json" Link="Public\plugin.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Manifest Include="$(ApplicationManifest)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="2.6.4" />
+    <PackageReference Include="WidBar.SDK" Version="2.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The same battery readers and formatting the overlay app uses. -->
+    <ProjectReference Include="..\Widgets.Providers\Widgets.Providers.csproj" />
+  </ItemGroup>
+
+</Project>
