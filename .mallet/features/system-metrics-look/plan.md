@@ -1,7 +1,7 @@
 # Feature: Match the System Metrics look
-Status: planning
+Status: in progress
 Created: 2026-11-26
-Branch: —
+Branch: f/system-metrics-look
 
 ## Goal
 Make the battery widget's settings page, flyout and taskbar preview look and behave like WidBar's System Metrics widget.
