@@ -44,6 +44,10 @@ trust its public part (an administrator step), then:
 Add-AppxPackage artifacts\DeviceBatteries.msix
 ```
 
+
+`-Arch` chooses what is built: `x64` (the default), `arm64`, or `both`, which produces one signed x64 + ARM64
+`artifactsDeviceBatteries.msixbundle`, the file a release publishes. The per-architecture publish profiles are in
+`srcWidgets.WidBarPropertiesPublishProfiles`; the ARM64 package cannot be tried on an x64 PC.
 Raise the `Version` in the manifest for every rebuild: Windows refuses to reinstall the same version.
 WidBar must be installed; add the widget from its settings.
 

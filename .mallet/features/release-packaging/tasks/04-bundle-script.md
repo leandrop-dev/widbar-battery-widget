@@ -1,5 +1,5 @@
 # Task: bundle-script
-Status: pending
+Status: done
 Deps: 03
 
 ## Goal

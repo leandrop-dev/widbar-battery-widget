@@ -18,7 +18,7 @@ The packaging study (system-metrics-look state.md, "Packaging study") found that
 - [x] 01-plugin-id — set com.codemonk.devicebattery in the plugin class, manifest and csproj, with a test that the three agree [deps: —] [parallel: no] [phase: 1]
 - [x] 02-review-id — review phase 1: the id change and its consistency test [deps: 01] [parallel: no] [phase: 1] [review]
 - [x] 03-bundle-spike — find out whether winapp and makeappx can build ARM64 and a bundle here and on a GitHub runner [deps: 02] [parallel: no] [phase: 2]
-- [ ] 04-bundle-script — commit the publish profiles and make build/package-widbar.ps1 produce a signed .msixbundle [deps: 03] [parallel: no] [phase: 2]
+- [x] 04-bundle-script — commit the publish profiles and make build/package-widbar.ps1 produce a signed .msixbundle [deps: 03] [parallel: no] [phase: 2]
 - [ ] 05-review-bundle — review phase 2: the profiles and the bundle script [deps: 03, 04] [parallel: no] [phase: 2] [review]
 - [ ] 06-version-stamp — a script that stamps one version into the manifest, csproj and plugin class, with tests [deps: 05] [parallel: yes] [phase: 3]
 - [ ] 07-release-cert — a script that makes the dedicated release certificate and prepares the two GitHub secrets [deps: 05] [parallel: yes] [phase: 3]
