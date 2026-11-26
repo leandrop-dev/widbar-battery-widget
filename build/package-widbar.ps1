@@ -23,11 +23,19 @@ $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 Set-Location $root
 
-if (-not $Output) { $Output = if ($Arch -eq 'both') { 'artifacts\DeviceBatteries.msixbundle' } else { 'artifacts\DeviceBatteries.msix' } }
+$Arch = $Arch.ToLowerInvariant()   # ValidateSet ignores case, but winapp expects lowercase
+if (-not $Output) {
+    $Output = switch ($Arch) {
+        'both' { 'artifacts\DeviceBatteries.msixbundle' }
+        'arm64' { 'artifacts\DeviceBatteries-arm64.msix' }   # never replaces the x64 file that installs here
+        default { 'artifacts\DeviceBatteries.msix' }
+    }
+}
 $architectures = if ($Arch -eq 'both') { @('x64', 'arm64') } else { @($Arch) }
 
 # The SDK writes obj\widbar\plugin.json during the build, and the package links it in as Public\plugin.json,
-# so the project is built once per architecture first to make sure that file exists and is current.
+# so the project is built first to make sure that file exists and is current. Building each architecture also
+# shows a compile error for it before the long packaging step.
 foreach ($a in $architectures) {
     $platform = if ($a -eq 'arm64') { 'ARM64' } else { 'x64' }
     dotnet build src\Widgets.WidBar\Widgets.WidBar.csproj -c Release "-p:Platform=$platform"
