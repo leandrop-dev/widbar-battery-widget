@@ -1,5 +1,5 @@
 # Task: flyout-view
-Status: pending
+Status: done
 Deps: 12, 13
 
 ## Goal
