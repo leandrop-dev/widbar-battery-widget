@@ -18,8 +18,8 @@ public enum ThemeChoice { Auto, Light, Dark }
 /// <summary>Acrylic is the standard frosted-glass bar. Adjustable is the same glass with a strength the user sets.</summary>
 public enum BackgroundStyle { Acrylic, Adjustable }
 
-/// <summary>How the taskbar preview is laid out: vertical meters like System Metrics, or the single row of tiles.</summary>
-public enum PreviewLayout { VerticalMeters, Row }
+/// <summary>How the taskbar preview is laid out: the layouts of WidBar's System Metrics widget, minus its history graph.</summary>
+public enum PreviewLayout { VerticalMeters, FillCapsules, IconMatrix, MinimalText, RadialGauges }
 
 /// <summary>The space between two tiles of the preview.</summary>
 public enum TileSpacing { Compact, Standard, Relaxed }
@@ -61,7 +61,8 @@ public sealed class AppearanceSettings
     /// <summary>The name of each tile beside its value.</summary>
     public bool ShowNames { get; set; } = true;
 
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+    // Lenient: a file saved by an older build with a layout that no longer exists keeps all its other settings.
+    [JsonConverter(typeof(PreviewLayoutConverter))]
     public PreviewLayout Layout { get; set; } = PreviewLayout.VerticalMeters;
 
     [JsonConverter(typeof(JsonStringEnumConverter))]

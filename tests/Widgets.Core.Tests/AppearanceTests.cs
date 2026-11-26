@@ -395,7 +395,7 @@ public class BatteryWidgetSettingsTests
     public void RoundTrip_KeepsTheNewFieldsAndTheDeviceOverrides()
     {
         var s = new BatteryWidgetSettings { RefreshMinutes = 4, Labels = new() { ["a"] = "Headset" }, Colours = new() { ["a"] = "#112233" } };
-        s.Appearance.Layout = PreviewLayout.Row;
+        s.Appearance.Layout = PreviewLayout.IconMatrix;
         s.Appearance.Spacing = TileSpacing.Relaxed;
         s.Appearance.Alignment = ContentAlignment.Right;
         s.Appearance.WidthAdjustment = -40;
@@ -408,7 +408,7 @@ public class BatteryWidgetSettingsTests
         Assert.Equal(4, back.RefreshMinutes);
         Assert.Equal("Headset", back.Labels["a"]);
         Assert.Equal("#112233", back.Colours["a"]);
-        Assert.Equal(PreviewLayout.Row, back.Appearance.Layout);
+        Assert.Equal(PreviewLayout.IconMatrix, back.Appearance.Layout);
         Assert.Equal(TileSpacing.Relaxed, back.Appearance.Spacing);
         Assert.Equal(ContentAlignment.Right, back.Appearance.Alignment);
         Assert.Equal(-40, back.Appearance.WidthAdjustment);

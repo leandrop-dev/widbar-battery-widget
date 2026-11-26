@@ -107,7 +107,10 @@ internal sealed class SettingsView
         page.Children.Add(Cards.Section("Presentation"));
 
         page.Children.Add(Cards.Row("", "Layout", null,
-            Combo("Layout", [("Vertical meters", nameof(PreviewLayout.VerticalMeters)), ("Row", nameof(PreviewLayout.Row))],
+            Combo("Layout",
+                [("Vertical meters", nameof(PreviewLayout.VerticalMeters)), ("Fill capsules", nameof(PreviewLayout.FillCapsules)),
+                    ("Icon matrix", nameof(PreviewLayout.IconMatrix)), ("Minimal text", nameof(PreviewLayout.MinimalText)),
+                    ("Radial gauges", nameof(PreviewLayout.RadialGauges))],
                 look.Layout.ToString(), tag => Change(a => a.Layout = Enum.Parse<PreviewLayout>(tag)))));
 
         page.Children.Add(Cards.Row("", "Icons", "Used by the Row layout",
