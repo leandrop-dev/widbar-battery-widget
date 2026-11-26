@@ -15,8 +15,12 @@ internal readonly record struct Ink(bool Dark)
     /// <summary>The colour of the taskbar behind the widget, used to keep battery colours readable.</summary>
     public Rgb Bar => Dark ? new Rgb(32, 32, 32) : new Rgb(243, 243, 243);
 
-    public Brush Primary => Solid(Dark ? new Rgb(255, 255, 255) : new Rgb(20, 20, 20));
+    /// <summary>The colour of plain text, as a colour, for the code that decides colours without drawing.</summary>
+    public Rgb NeutralRgb => Dark ? new Rgb(255, 255, 255) : new Rgb(20, 20, 20);
+
     public Brush Secondary => Solid(Dark ? new Rgb(200, 200, 200) : new Rgb(74, 74, 74));
     public Brush Success => Solid(Dark ? new Rgb(108, 203, 95) : new Rgb(15, 123, 15));
-    public Brush Track => Solid(PillTint.NeutralColor(Dark), 0.14);
+    /// <summary>White on a dark taskbar, black on a light one, for hairlines and tracks drawn at low opacity.</summary>
+    public static Rgb Neutral(bool dark) => dark ? new Rgb(255, 255, 255) : new Rgb(0, 0, 0);
+
 }

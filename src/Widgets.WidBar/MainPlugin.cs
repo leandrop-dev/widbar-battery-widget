@@ -14,7 +14,7 @@ namespace Widgets.WidBar;
 /// </summary>
 public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IWidgetFlyoutLifecycle
 {
-    private const double SidePadding = 4;
+    private const double SidePadding = PreviewBuilder.SidePadding;
     private const double DefaultSlotHeight = 48; // the taskbar's height, or about 26 with small taskbar buttons
 
     private BatteryWidgetSettings _settings = new();
@@ -27,17 +27,18 @@ public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IW
 
     public override string Id => "com.example.devicebatteries";
     public override string Name => "Device batteries";
-    public override string Version => "0.2.0";
+    public override string Version => "0.3.1";
 
     public override int PreviewLogicalWidth => _previewWidth;
-    public override int FlyoutWidth => 360;
-    public override int FlyoutHeight => 340;
+    public override int FlyoutWidth => 560;
+    public override int FlyoutHeight => 520;
 
     public override async Task InitializeAsync(IWidgetContext context)
     {
         _settings = BatteryWidgetSettings.FromJson(context.SettingsJson);
         await base.InitializeAsync(context);
         BatteryHub.Changed += OnBatteriesChanged;
+        BatteryHub.SetRefresh(context.InstanceId, _settings.RefreshMinutes);
         BatteryHub.Start(context.SharedDataDirectory);
     }
 
@@ -74,12 +75,13 @@ public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IW
         return _flyout.Root;
     }
 
-    public UIElement? CreateSettingsContent(IWidgetSettingsContext context) => new SettingsView(context, BatteryHub.Snapshot()).Root;
+    public UIElement? CreateSettingsContent(IWidgetSettingsContext context) => new SettingsView(context, BatteryHub.Snapshot(), _slotHeight).Root;
 
     // WidBar calls this while the settings page is edited (so the taskbar follows along), after Save, and with the original JSON after Cancel.
     public override void OnSettingsDraftChanged(string settingsJson)
     {
         _settings = BatteryWidgetSettings.FromJson(settingsJson);
+        if (Context is { } context) BatteryHub.SetRefresh(context.InstanceId, _settings.RefreshMinutes);
         RenderPreview();
         _flyout?.Refresh(Shown(), _settings);
     }
@@ -95,6 +97,7 @@ public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IW
     public override ValueTask DisposeAsync()
     {
         BatteryHub.Changed -= OnBatteriesChanged;
+        if (Context is { } context) BatteryHub.ClearRefresh(context.InstanceId);
         return ValueTask.CompletedTask;
     }
 
@@ -111,34 +114,10 @@ public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IW
     {
         if (_row is null || _root is null) return;
 
-        var dark = _root.ActualTheme == ElementTheme.Dark;
-        var room = Math.Max(16, _slotHeight - 4);
-        var metrics = LookMetrics.For(PillStyle.Transparent, _settings.Appearance.Scale, Math.Min(32, room), room);
-        var tiles = new TileFactory(_settings, metrics, dark);
-
-        _row.Children.Clear();
-        var shown = Shown();
-        if (shown.Count == 0)
-        {
-            _row.Children.Add(new TextBlock
-            {
-                Text = "No batteries",
-                FontSize = metrics.FontSize,
-                Foreground = new Ink(dark).Secondary,
-                VerticalAlignment = VerticalAlignment.Center,
-            });
-        }
-        foreach (var m in shown)
-        {
-            if (_row.Children.Count > 0) _row.Children.Add(tiles.Divider());
-            _row.Children.Add(tiles.Build(m));
-        }
-
-        _row.Measure(new Windows.Foundation.Size(double.PositiveInfinity, double.PositiveInfinity));
-        var width = (int)Math.Ceiling(_row.DesiredSize.Width + SidePadding * 2);
+        var width = PreviewBuilder.Fill(_row, _settings, Shown(), _slotHeight, _root.ActualTheme == ElementTheme.Dark);
         if (width != _previewWidth)
         {
-            _previewWidth = Math.Max(60, width);
+            _previewWidth = width; // already includes the width adjustment and the minimum
             Context?.RequestPreviewRefresh(); // WidBar reads PreviewLogicalWidth again and makes room
         }
     }

@@ -1,14 +1,18 @@
 using System.Text.Json;
+using Widgets.Core.Appearance;
 
 namespace Widgets.Core.Settings;
 
 /// <summary>
 /// What a placed copy of the battery widget stores as its settings JSON: which devices show and in what order, and how the
 /// tiles look. The theme and the material behind the widget come from the host, so only the parts of
-/// <see cref="AppearanceSettings"/> that describe the tiles themselves are used (icons, palette, size, names).
+/// <see cref="AppearanceSettings"/> that describe the tiles themselves are used (layout, icons, palette, size, spacing, colours, names).
 /// </summary>
 public sealed class BatteryWidgetSettings
 {
+    /// <summary>Longest custom device name kept; a longer one would not fit a taskbar tile.</summary>
+    public const int MaxLabelLength = 24;
+
     private static readonly JsonSerializerOptions Json = new() { WriteIndented = false, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never };
 
     /// <summary>Device metric ids in the order the user wants them. Ids that are not listed follow, in provider order.</summary>
@@ -22,10 +26,26 @@ public sealed class BatteryWidgetSettings
     /// <summary>A device at or below this level (percent) is flagged as low.</summary>
     public int LowThreshold { get; set; } = 20;
 
+    /// <summary>A name the user gave a device, by metric id, shown instead of the device's own name.</summary>
+    public Dictionary<string, string> Labels { get; set; } = [];
+
+    /// <summary>A colour (#RRGGBB) the user gave a device, by metric id, used instead of the battery palette.</summary>
+    public Dictionary<string, string> Colours { get; set; } = [];
+
+    /// <summary>How often the batteries are read, in minutes (1 to 10).</summary>
+    public int RefreshMinutes { get; set; } = 1;
+
     public BatteryWidgetSettings Clone() => new()
     {
-        Order = [.. Order], Hidden = [.. Hidden], Appearance = Appearance.Clone(), LowThreshold = LowThreshold,
+        Order = [.. Order ?? []], Hidden = [.. Hidden ?? []], Appearance = (Appearance ?? new AppearanceSettings()).Clone(), LowThreshold = LowThreshold,
+        Labels = new(Labels ?? [], StringComparer.Ordinal), Colours = new(Colours ?? [], StringComparer.Ordinal), RefreshMinutes = RefreshMinutes,
     };
+
+    /// <summary>The user's name for a device, or <paramref name="fallback"/> (the device's own name) when there is none.</summary>
+    public string LabelFor(string id, string fallback) => Labels.TryGetValue(id, out var label) ? label : fallback;
+
+    /// <summary>The user's colour for a device, or null when it follows the palette.</summary>
+    public Rgb? ColourFor(string id) => Colours.TryGetValue(id, out var hex) && Hex.TryParse(hex, out var c) ? c : null;
 
     /// <summary>The order and visibility as the general layout settings, so <see cref="TileLayout"/> can be reused.</summary>
     public WidgetSettings AsLayout() => new() { Order = [.. Order], Hidden = [.. Hidden] };
@@ -63,6 +83,25 @@ public sealed class BatteryWidgetSettings
         next.Hidden = [.. (s.Hidden ?? []).Where(id => !string.IsNullOrWhiteSpace(id)).Distinct(StringComparer.Ordinal)];
         next.Appearance = AppearanceSettings.Sanitize(s.Appearance ?? new AppearanceSettings());
         next.LowThreshold = Math.Clamp(s.LowThreshold, 5, 50);
+        next.RefreshMinutes = Math.Clamp(s.RefreshMinutes, 1, 10);
+
+        next.Labels = [];
+        foreach (var (id, label) in s.Labels ?? [])
+        {
+            var trimmed = (label ?? "").Trim();
+            if (string.IsNullOrWhiteSpace(id) || trimmed.Length == 0) continue;
+            if (trimmed.Length > MaxLabelLength)
+            {
+                // Never cut between the two halves of a surrogate pair (an emoji): that leaves a box.
+                var keep = char.IsHighSurrogate(trimmed[MaxLabelLength - 1]) ? MaxLabelLength - 1 : MaxLabelLength;
+                trimmed = trimmed[..keep];
+            }
+            next.Labels[id] = trimmed;
+        }
+
+        next.Colours = [];
+        foreach (var (id, hex) in s.Colours ?? [])
+            if (!string.IsNullOrWhiteSpace(id) && Hex.TryParse(hex, out var colour)) next.Colours[id] = colour.ToHex();
         return next;
     }
 }

@@ -23,6 +23,29 @@ public class MetricFormatTests
     }
 
     [Fact]
+    public void PercentSymbolCanBeLeftOff()
+    {
+        var level = new Metric("a", "A", MetricKind.Battery, 36, "%", "s");
+        Assert.Equal("36", MetricFormat.Value(level, percentSymbol: false, CultureInfo.InvariantCulture));
+        Assert.Equal("36%", MetricFormat.Value(level, percentSymbol: true, CultureInfo.InvariantCulture));
+        Assert.Equal(MetricFormat.Value(level, CultureInfo.InvariantCulture), MetricFormat.Value(level, percentSymbol: true, CultureInfo.InvariantCulture));
+    }
+
+    [Fact]
+    public void PercentSymbolOffLeavesTextAndMissingValuesAlone()
+    {
+        Assert.Equal("--", MetricFormat.Value(new Metric("a", "A", MetricKind.Battery, null, "%", "s"), percentSymbol: false, CultureInfo.InvariantCulture));
+        Assert.Equal("USB", MetricFormat.Value(new Metric("a", "A", MetricKind.Battery, null, "%", "s", Text: "USB"), percentSymbol: false, CultureInfo.InvariantCulture));
+    }
+
+    [Fact]
+    public void PercentSymbolOffOnlyDropsThePercentUnit()
+    {
+        var temp = new Metric("t", "T", MetricKind.Percent, 61, "°C", "s");
+        Assert.Equal("61°C", MetricFormat.Value(temp, percentSymbol: false, CultureInfo.InvariantCulture));
+    }
+
+    [Fact]
     public void NoValueAndPercent()
     {
         Assert.Equal("--", MetricFormat.Value(new Metric("a", "A", MetricKind.Percent, null, "%", "s"), CultureInfo.InvariantCulture));
