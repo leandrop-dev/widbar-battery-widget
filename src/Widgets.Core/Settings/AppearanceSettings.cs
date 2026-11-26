@@ -18,6 +18,15 @@ public enum ThemeChoice { Auto, Light, Dark }
 /// <summary>Acrylic is the standard frosted-glass bar. Adjustable is the same glass with a strength the user sets.</summary>
 public enum BackgroundStyle { Acrylic, Adjustable }
 
+/// <summary>How the taskbar preview is laid out: vertical meters like System Metrics, or the single row of tiles.</summary>
+public enum PreviewLayout { VerticalMeters, Row }
+
+/// <summary>The space between two tiles of the preview.</summary>
+public enum TileSpacing { Compact, Standard, Relaxed }
+
+/// <summary>Where the tiles sit when the preview is wider than they need.</summary>
+public enum ContentAlignment { Left, Center, Right }
+
 /// <summary>How the widget looks. Part of <see cref="WidgetSettings"/>; invalid values fall back to the defaults.</summary>
 public sealed class AppearanceSettings
 {
@@ -52,6 +61,29 @@ public sealed class AppearanceSettings
     /// <summary>The name of each tile beside its value.</summary>
     public bool ShowNames { get; set; } = true;
 
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public PreviewLayout Layout { get; set; } = PreviewLayout.VerticalMeters;
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public TileSpacing Spacing { get; set; } = TileSpacing.Standard;
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public ContentAlignment Alignment { get; set; } = ContentAlignment.Center;
+
+    /// <summary>Pixels added to (or taken from) the preview's automatic width: -120 to 400, 0 keeps it automatic.</summary>
+    public int WidthAdjustment { get; set; }
+
+    public bool ShowPercentSymbol { get; set; } = true;
+    public bool ShowSeparators { get; set; } = true;
+    public bool ColouredLabelsAndIcons { get; set; } = true;
+    public bool ColouredValues { get; set; }
+
+    /// <summary>The bolt next to a device that is charging.</summary>
+    public bool ShowChargingBolt { get; set; } = true;
+
+    /// <summary>One Windows accent colour for every device, instead of the battery palette.</summary>
+    public bool UseAccentColour { get; set; }
+
     public AppearanceSettings Clone() => (AppearanceSettings)MemberwiseClone();
 
     /// <summary>A copy with every value forced into its valid range, so a hand-edited file cannot break the widget.</summary>
@@ -63,6 +95,10 @@ public sealed class AppearanceSettings
         if (!Enum.IsDefined(s.Palette)) s.Palette = BatteryPalette.Classic;
         if (!Enum.IsDefined(s.Theme)) s.Theme = ThemeChoice.Auto;
         if (!Enum.IsDefined(s.Background)) s.Background = BackgroundStyle.Acrylic;
+        if (!Enum.IsDefined(s.Layout)) s.Layout = PreviewLayout.VerticalMeters;
+        if (!Enum.IsDefined(s.Spacing)) s.Spacing = TileSpacing.Standard;
+        if (!Enum.IsDefined(s.Alignment)) s.Alignment = ContentAlignment.Center;
+        s.WidthAdjustment = Math.Clamp(s.WidthAdjustment, -120, 400);
         s.Scale = Scales.Contains(s.Scale) ? s.Scale : Scales.OrderBy(x => Math.Abs(x - s.Scale)).First();
         s.BackgroundOpacity = Math.Clamp(s.BackgroundOpacity, 0, 100);
         s.CustomHigh = Hex.Normalise(s.CustomHigh, "#6EDC78");
