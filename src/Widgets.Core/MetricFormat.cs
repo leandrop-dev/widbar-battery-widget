@@ -21,6 +21,17 @@ public static class MetricFormat
         return m.Approximate ? "~" + text : text;
     }
 
+    /// <summary>
+    /// As <see cref="Value(Metric, CultureInfo?)"/>, but without the "%" when <paramref name="percentSymbol"/> is false.
+    /// A metric's own text and a missing value ("--") are left as they are, and so are units other than "%".
+    /// </summary>
+    public static string Value(Metric m, bool percentSymbol, CultureInfo? culture = null)
+    {
+        var text = Value(m, culture);
+        if (percentSymbol || !string.IsNullOrEmpty(m.Text) || m.Unit != "%") return text;
+        return text.EndsWith('%') ? text[..^1] : text;
+    }
+
     /// <summary>1234 -> "1.2k", 1250000 -> "1.3M". Below 1000 the exact number is shown.</summary>
     public static string Compact(double v, CultureInfo culture)
     {
