@@ -1,0 +1,21 @@
+# State: system-metrics-look
+
+## Decisions
+<!-- 2026-11-26: Scope is settings + flyout + taskbar preview — user chose to restyle the preview too, overriding the earlier pill/icon/palette defaults; the current look stays as the "Row" layout choice. -->
+<!-- 2026-11-26: No history sparklines; each device card shows a level bar — batteries change slowly and this needs no new storage. The "History graphs" option is not mirrored. -->
+<!-- 2026-11-26: Flyout tabs are Summary plus one tab per device kind that exists (Headsets, Mice, Controllers) — user choice. -->
+<!-- 2026-11-26: Mirror System Metrics' options only where they make sense for batteries. Not mirrored: Number precision (levels are whole percents), Measurement units, History graphs, Custom values, Units dropdowns. -->
+<!-- 2026-11-26: Cards are built from XamlReader.Load strings using {ThemeResource ...} brushes, because Application.Current.Resources follows the app theme, not the host-chosen flyout/settings theme (earlier gotcha with fixed brushes). -->
+<!-- 2026-11-26: "Value size" in settings maps onto the existing Scale values (Small 90, Medium 100, Large 115, Extra large 130); there is no new ValueSize enum, so no duplicate setting. -->
+<!-- 2026-11-26: Refresh interval (1-10 min) is process-wide: the smallest value among the placed copies wins, because all copies share one BatteryHub poller. -->
+<!-- 2026-11-26: Default Layout for a settings JSON without the new fields is VerticalMeters, so existing installs adopt the new look. -->
+
+## Reference: System Metrics, captured live 2026-11-26
+Captures: C:\Users\noobi\AppData\Local\Temp\claude\68a1b84387f360a6\227aec3e-20e5-4b89-9e52-131b06dacab8\scratchpad\ref\ (a-4852634.png flyout, b-592628.png settings, settings-tree.txt, flyout-tree.txt); may be cleared by a reboot, recapture with `winapp ui screenshot -w <hwnd>` while its windows are open.
+Settings window 1120x820, content column 1056 wide. Live preview card (header "Live preview", right label "254 px - fits content", darker inner well holding the real preview). Section headings are plain text ~18 px tall ("Presentation", "Metrics and colors", "Units", "Data refresh"). Rows are full-width cards 1056 x ~66-68: icon left, header 18 px + description 15 px, control right (ComboBox 208x40; ToggleSwitch 52x40 preceded by an "On"/"Off" text). Option groups are expanders; child rows ~52 px. Footer note: "Changes are previewed live and saved only for this widget instance." Save/Cancel are 120x32 (host).
+Options: Layout (ComboBox, "Vertical meters"); Size and spacing = Value size (Medium), Spacing (Standard), Alignment (Center), Number precision (Whole numbers), Preview width adjustment (spinner -120..400, 0 = automatic); Labels and colors = Metric labels, Percent symbol, Measurement units, History graphs, Metric separators, Colored labels and icons, Colored values, Activity indicators; Windows accent color toggle; one expander per metric (toggle, Label, Color button, Displayed value); Custom values expander; Units (Temperature, Disk rate, Totals); Data refresh (Refresh interval spinner 1..10, description "A slower interval reduces background activity.").
+Flyout 560x628: tab strip (Summary, CPU, Memory, Disk, GPU, Temperature) with an underline on the selected tab and a gear button at the top right (25x25), a divider, then a scrolling page of rounded cards. Small cards (~190 wide): icon + title, 35 px value, sparkline. Wide cards (~270 wide): title + right-aligned detail, two stat columns (15 px label over 22 px value), sparkline. Detail cards: title with icon, right-aligned "36% active", three columns of 15 px label over 22 px value.
+Preview (from the live preview card): vertical meter bar, a small coloured label above the value, value in bold.
+
+## Blockers
+<!-- - [ ] <description> (check off when resolved) -->
