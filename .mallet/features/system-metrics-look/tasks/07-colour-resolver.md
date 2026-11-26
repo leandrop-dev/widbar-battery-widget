@@ -1,5 +1,5 @@
 # Task: colour-resolver
-Status: pending
+Status: done
 Deps: 06
 
 ## Goal
