@@ -1,5 +1,5 @@
 # Task: card-primitives
-Status: pending
+Status: done
 Deps: —
 
 ## Goal
