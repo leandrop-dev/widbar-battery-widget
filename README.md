@@ -8,9 +8,12 @@ devices on the Windows taskbar, with a flyout for detail and a settings page.
 - PlayStation DualSense (over USB), Xbox-style controllers (coarse levels), and Bluetooth LE devices that expose the
   standard Battery Service (not yet verified inside WidBar)
 - A bolt next to a device that is charging, a dimmed last value for a device that is asleep, and a "!" when a level is low
-- Settings: which devices show and in what order, icon style (outline, filled, simple, battery gauge, none), battery
-  colours (classic, colour-blind, pastel, high contrast, mono, custom), size, device names, and the low-battery level
-- A flyout on click with every device's level, a level bar and its state
+- Settings, laid out like WidBar's System Metrics widget with a live preview: layout (vertical meters, minimal text, minimal icons),
+  value size, spacing, alignment and width, labels, percent symbol, separators and charging bolt, coloured labels and
+  values, the Windows accent colour, battery colours (classic, colour-blind, pastel, high contrast, mono, custom),
+  which devices show and in what order, a name and colour per device, the low-battery level and the refresh interval.
+  Options a layout does not draw are greyed out
+- A flyout on click with a Summary tab and one tab per kind of device (headsets, mice, keyboards, controllers), showing each level, a level bar, its state and when it was last seen
 
 It does not read PC load or temperatures: WidBar's own System Metrics widget covers those.
 

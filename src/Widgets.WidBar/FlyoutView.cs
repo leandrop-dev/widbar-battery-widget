@@ -1,8 +1,6 @@
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Automation;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Shapes;
 using Widgets.Core;
 using Widgets.Core.Appearance;
 using Widgets.Core.Settings;
@@ -51,6 +49,7 @@ internal sealed class FlyoutView
             if (_building || _tabs.SelectedItem?.Tag is not string key || key == _selected) return;
             _selected = key;
             RenderPage();
+            _scroll.ChangeView(null, 0, null, disableAnimation: true); // a new tab starts at its top
         };
 
         // The flyout keeps its content for good, so the colours are rebuilt whenever the theme changes.
@@ -84,16 +83,19 @@ internal sealed class FlyoutView
         if (!keys.SequenceEqual(_tabKeys))
         {
             _building = true;
-            _tabs.Items.Clear();
-            _tabs.Items.Add(new SelectorBarItem { Text = "Summary", Tag = SummaryKey });
-            foreach (var g in groups) _tabs.Items.Add(new SelectorBarItem { Text = g.Title, Tag = g.Key });
-            _tabKeys = keys;
-            _building = false;
+            try
+            {
+                _tabs.Items.Clear();
+                _tabs.Items.Add(new SelectorBarItem { Text = "Summary", Tag = SummaryKey });
+                foreach (var g in groups) _tabs.Items.Add(new SelectorBarItem { Text = g.Title, Tag = g.Key });
+                _tabKeys = keys;
+            }
+            finally { _building = false; }
         }
 
         _building = true;
-        _tabs.SelectedItem = _tabs.Items.OfType<SelectorBarItem>().FirstOrDefault(i => (i.Tag as string) == _selected);
-        _building = false;
+        try { _tabs.SelectedItem = _tabs.Items.OfType<SelectorBarItem>().FirstOrDefault(i => (i.Tag as string) == _selected); }
+        finally { _building = false; }
     }
 
     // ---- pages
@@ -172,15 +174,19 @@ internal sealed class FlyoutView
         var colours = InkFor(m, ink, windowsAccent);
         var name = _settings.LabelFor(m.Id, m.Label);
 
-        var header = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8 };
+        var header = new Grid { ColumnSpacing = 8 };
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+        header.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         header.Children.Add(Icon(m, 18, colours.Icon, ink));
         var title = Cards.Primary(name, 14, semiBold: true);
+        title.TextWrapping = TextWrapping.NoWrap; // a Grid column limits the width, so the ellipsis can apply
         title.TextTrimming = TextTrimming.CharacterEllipsis;
         title.VerticalAlignment = VerticalAlignment.Center;
+        Grid.SetColumn(title, 1);
         header.Children.Add(title);
 
         var value = Cards.Primary(MetricFormat.Value(m), 30, semiBold: true);
-        value.Foreground = Ink.Solid(colours.Accent);
+        value.Foreground = Ink.Solid(colours.Value);
 
         var body = new StackPanel { Spacing = 2 };
         body.Children.Add(header);
@@ -211,6 +217,7 @@ internal sealed class FlyoutView
         title.Children.Add(icon);
         var nameText = Cards.Primary(name, 14, semiBold: true);
         nameText.VerticalAlignment = VerticalAlignment.Center;
+        nameText.TextWrapping = TextWrapping.NoWrap;
         nameText.TextTrimming = TextTrimming.CharacterEllipsis;
         Grid.SetColumn(nameText, 1);
         title.Children.Add(nameText);
@@ -220,10 +227,11 @@ internal sealed class FlyoutView
         Grid.SetColumn(stateText, 2);
         title.Children.Add(stateText);
 
-        var seen = m.Updated is { } at ? DeviceStatus.Ago(now - at) : "--";
+        // A device that is switched off is reported as updated "now"; that is not a sighting, so show nothing.
+        var seen = m.Updated is { } at && (m.Value is not null || !string.IsNullOrEmpty(m.Text)) ? DeviceStatus.Ago(now - at) : "--";
         var columns = new Grid { ColumnSpacing = 12 };
         for (var c = 0; c < 3; c++) columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
-        AddStat(columns, 0, "Level", MetricFormat.Value(m), colours.Accent);
+        AddStat(columns, 0, "Level", MetricFormat.Value(m), colours.Value);
         AddStat(columns, 1, "State", state, null);
         AddStat(columns, 2, "Last seen", seen, null);
 
@@ -241,6 +249,7 @@ internal sealed class FlyoutView
         var stat = new StackPanel { Spacing = 0 };
         stat.Children.Add(Cards.Secondary(label));
         var text = Cards.Primary(value, 18, semiBold: true);
+        text.TextWrapping = TextWrapping.NoWrap; // one line, so the ellipsis can apply and the columns stay level
         text.TextTrimming = TextTrimming.CharacterEllipsis;
         if (colour is { } c) text.Foreground = Ink.Solid(c);
         stat.Children.Add(text);
