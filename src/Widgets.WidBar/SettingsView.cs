@@ -30,6 +30,8 @@ internal sealed class SettingsView
     private readonly TextBlock _previewWidth = Cards.Secondary("");
     private readonly StackPanel _deviceList = new() { Spacing = 6 };
     private readonly HashSet<string> _openDevices = new(StringComparer.Ordinal);
+    private readonly List<(PreviewOption Option, FrameworkElement Row, string? Normal)> _optionRows = [];
+    private (string Name, int Direction)? _refocus;
     private readonly ScrollViewer _root;
     private Expander? _customColours;
     private BatteryWidgetSettings _draft;
@@ -43,6 +45,7 @@ internal sealed class SettingsView
         var page = new StackPanel { Spacing = 6, MaxWidth = PageWidth, HorizontalAlignment = HorizontalAlignment.Stretch, Padding = new Thickness(0, 0, 0, 12) };
         page.Children.Add(PreviewCard());
         BuildPresentation(page);
+        ApplyLayoutSupport();
         BuildDevicesAndColours(page);
         BuildDataRefresh(page);
         page.Children.Add(Cards.Secondary("Changes are previewed live and saved only for this widget instance."));
@@ -110,24 +113,24 @@ internal sealed class SettingsView
             Combo("Layout",
                 [("Vertical meters", nameof(PreviewLayout.VerticalMeters)), ("Minimal text", nameof(PreviewLayout.MinimalText)),
                     ("Minimal icons", nameof(PreviewLayout.MinimalIcons))],
-                look.Layout.ToString(), tag => Change(a => a.Layout = Enum.Parse<PreviewLayout>(tag)))));
+                look.Layout.ToString(), tag => { Change(a => a.Layout = Enum.Parse<PreviewLayout>(tag)); ApplyLayoutSupport(); })));
 
-        page.Children.Add(Cards.Row("", "Icons", "Used by the Minimal icons layout",
+        page.Children.Add(Track(PreviewOption.Icons, "Icon in front of each value", Cards.Row("", "Icons", null,
             Combo("Icons", [("Outline", nameof(IconStyle.Outline)), ("Filled", nameof(IconStyle.Filled)), ("Simple", nameof(IconStyle.Simple)),
                     ("Battery gauge", nameof(IconStyle.Battery)), ("None", nameof(IconStyle.None))],
-                look.Icons.ToString(), tag => Change(a => a.Icons = Enum.Parse<IconStyle>(tag)))));
+                look.Icons.ToString(), tag => Change(a => a.Icons = Enum.Parse<IconStyle>(tag))))));
 
         page.Children.Add(Cards.Expander("", "Size and spacing", "Value size, spacing, alignment and width",
         [
-            Cards.Field("Value size", Combo("Value size",
+            Track(PreviewOption.ValueSize, null, Cards.Field("Value size", Combo("Value size",
                 [("Small", "90"), ("Medium", "100"), ("Large", "115"), ("Extra large", "130")],
-                look.Scale.ToString(), tag => Change(a => a.Scale = int.Parse(tag)))),
-            Cards.Field("Spacing", Combo("Spacing",
+                look.Scale.ToString(), tag => Change(a => a.Scale = int.Parse(tag))))),
+            Track(PreviewOption.Spacing, null, Cards.Field("Spacing", Combo("Spacing",
                 [("Compact", nameof(TileSpacing.Compact)), ("Standard", nameof(TileSpacing.Standard)), ("Relaxed", nameof(TileSpacing.Relaxed))],
-                look.Spacing.ToString(), tag => Change(a => a.Spacing = Enum.Parse<TileSpacing>(tag)))),
-            Cards.Field("Alignment", Combo("Alignment",
+                look.Spacing.ToString(), tag => Change(a => a.Spacing = Enum.Parse<TileSpacing>(tag))))),
+            Track(PreviewOption.Alignment, null, Cards.Field("Alignment", Combo("Alignment",
                 [("Left", nameof(ContentAlignment.Left)), ("Center", nameof(ContentAlignment.Center)), ("Right", nameof(ContentAlignment.Right))],
-                look.Alignment.ToString(), tag => Change(a => a.Alignment = Enum.Parse<ContentAlignment>(tag)))),
+                look.Alignment.ToString(), tag => Change(a => a.Alignment = Enum.Parse<ContentAlignment>(tag))))),
             Cards.Field("Preview width adjustment",
                 Number("Preview width adjustment", -120, 400, look.WidthAdjustment, 10, v => Change(a => a.WidthAdjustment = v)),
                 "Widen or narrow the taskbar widget. 0 keeps the automatic width."),
@@ -135,13 +138,33 @@ internal sealed class SettingsView
 
         page.Children.Add(Cards.Expander("", "Labels and colors", "What appears next to each value, and in which color",
         [
-            Cards.Field("Metric labels", Cards.Toggle("Metric labels", look.ShowNames, on => Change(a => a.ShowNames = on))),
-            Cards.Field("Percent symbol", Cards.Toggle("Percent symbol", look.ShowPercentSymbol, on => Change(a => a.ShowPercentSymbol = on)), "Show %"),
-            Cards.Field("Metric separators", Cards.Toggle("Metric separators", look.ShowSeparators, on => Change(a => a.ShowSeparators = on))),
-            Cards.Field("Colored labels and icons", Cards.Toggle("Colored labels and icons", look.ColouredLabelsAndIcons, on => Change(a => a.ColouredLabelsAndIcons = on)), "Use device color"),
-            Cards.Field("Colored values", Cards.Toggle("Colored values", look.ColouredValues, on => Change(a => a.ColouredValues = on)), "Off keeps neutral text"),
-            Cards.Field("Activity indicators", Cards.Toggle("Activity indicators", look.ShowChargingBolt, on => Change(a => a.ShowChargingBolt = on)), "Show the charging bolt"),
+            Track(PreviewOption.MetricLabels, null, Cards.Field("Metric labels", Cards.Toggle("Metric labels", look.ShowNames, on => Change(a => a.ShowNames = on)))),
+            Track(PreviewOption.PercentSymbol, "Show %", Cards.Field("Percent symbol", Cards.Toggle("Percent symbol", look.ShowPercentSymbol, on => Change(a => a.ShowPercentSymbol = on)), "Show %")),
+            Track(PreviewOption.Separators, null, Cards.Field("Metric separators", Cards.Toggle("Metric separators", look.ShowSeparators, on => Change(a => a.ShowSeparators = on)))),
+            Track(PreviewOption.ColouredLabelsAndIcons, "Use device color", Cards.Field("Colored labels and icons", Cards.Toggle("Colored labels and icons", look.ColouredLabelsAndIcons, on => Change(a => a.ColouredLabelsAndIcons = on)), "Use device color")),
+            Track(PreviewOption.ColouredValues, "Off keeps neutral text", Cards.Field("Colored values", Cards.Toggle("Colored values", look.ColouredValues, on => Change(a => a.ColouredValues = on)), "Off keeps neutral text")),
+            Track(PreviewOption.ChargingBolt, "Show the charging bolt", Cards.Field("Activity indicators", Cards.Toggle("Activity indicators", look.ShowChargingBolt, on => Change(a => a.ShowChargingBolt = on)), "Show the charging bolt")),
         ]));
+    }
+
+    /// <summary>Remembers an option's row so <see cref="ApplyLayoutSupport"/> can grey it out; returns the row.</summary>
+    private T Track<T>(PreviewOption option, string? normalDescription, T row) where T : FrameworkElement
+    {
+        _optionRows.Add((option, row, normalDescription));
+        return row;
+    }
+
+    /// <summary>Greys out, and says so, the options the chosen layout does not draw, so no switch quietly does nothing.</summary>
+    private void ApplyLayoutSupport()
+    {
+        var layout = _draft.Appearance.Layout;
+        foreach (var (option, row, normal) in _optionRows)
+        {
+            var used = LayoutSupport.Honours(layout, option);
+            foreach (var control in Cards.Descendants(row).OfType<Control>()) control.IsEnabled = used;
+            row.Opacity = used ? 1 : 0.5;
+            Cards.SetDescription(row, used ? normal : "Not used by this layout");
+        }
     }
 
     private void BuildDevicesAndColours(StackPanel page)
@@ -235,6 +258,7 @@ internal sealed class SettingsView
         {
             var fixedText = Hex.Normalise(box.Text.Trim(), current);
             box.Text = fixedText; // shows the correction when what was typed is not a colour
+            if (string.Equals(fixedText, current, StringComparison.Ordinal)) return; // unchanged: nothing to save
             current = fixedText;
             Change(a => set(a, fixedText));
         }
@@ -279,9 +303,10 @@ internal sealed class SettingsView
                 Save();
             });
 
-            var expander = Cards.Expander(GlyphFor(device.Icon), device.Label, MetricFormat.Value(device),
+            Expander? expander = null;
+            expander = Cards.Expander(GlyphFor(device.Icon), _draft.LabelFor(id, device.Label), MetricFormat.Value(device),
             [
-                Cards.Field("Label", LabelBox(id, device.Label)),
+                Cards.Field("Label", LabelBox(id, device.Label, name => Cards.SetHeader(expander!, name))),
                 Cards.Field("Color", ColourBox(id, device.Label)),
                 Cards.Field("Order", MoveButtons(id, device.Label, ids, i > 0, i < ordered.Count - 1)),
             ], shown);
@@ -292,7 +317,7 @@ internal sealed class SettingsView
         }
     }
 
-    private TextBox LabelBox(string id, string deviceName)
+    private TextBox LabelBox(string id, string deviceName, Action<string> nameChanged)
     {
         var box = new TextBox
         {
@@ -302,12 +327,18 @@ internal sealed class SettingsView
             Width = 200,
         };
         AutomationProperties.SetName(box, $"Label for {deviceName}");
-        void Commit() => ChangeSettings(s =>
+        void Commit()
         {
             var text = box.Text.Trim();
-            if (text.Length == 0) s.Labels.Remove(id);
-            else s.Labels[id] = text;
-        });
+            _draft.Labels.TryGetValue(id, out var stored);
+            if (text == (stored ?? "")) return; // unchanged: tabbing through the box must not save
+            ChangeSettings(s =>
+            {
+                if (text.Length == 0) s.Labels.Remove(id);
+                else s.Labels[id] = text;
+            });
+            nameChanged(_draft.LabelFor(id, deviceName)); // the header shows the name the taskbar now uses
+        }
         box.LostFocus += (_, _) => Commit();
         box.KeyDown += (_, e) =>
         {
@@ -333,15 +364,16 @@ internal sealed class SettingsView
         void Commit()
         {
             var text = box.Text.Trim();
+            _draft.Colours.TryGetValue(id, out var stored);
             if (text.Length == 0 || !Hex.TryParse(text, out var c))
             {
                 box.Text = ""; // blank, or not a colour: back to the palette
-                ChangeSettings(s => s.Colours.Remove(id));
+                if (stored is not null) ChangeSettings(s => s.Colours.Remove(id));
             }
             else
             {
                 box.Text = c.ToHex();
-                ChangeSettings(s => s.Colours[id] = c.ToHex());
+                if (!string.Equals(stored, c.ToHex(), StringComparison.Ordinal)) ChangeSettings(s => s.Colours[id] = c.ToHex());
             }
             Paint();
         }
@@ -366,6 +398,23 @@ internal sealed class SettingsView
         return row;
     }
 
+    /// <summary>
+    /// After a device moved, puts the keyboard focus back on its Move button (the other direction's when it can no longer
+    /// move that way), because the list was rebuilt and the button that had focus is gone.
+    /// </summary>
+    private void RestoreMoveFocus()
+    {
+        if (_refocus is not { } wanted) return;
+        _refocus = null;
+        var buttons = Cards.Descendants(_deviceList).OfType<Button>().ToList();
+        var same = buttons.FirstOrDefault(b => AutomationProperties.GetName(b) == wanted.Name);
+        if (same is { IsEnabled: true }) { same.Focus(FocusState.Keyboard); return; }
+        var other = wanted.Name.EndsWith("earlier", StringComparison.Ordinal)
+            ? wanted.Name[..^"earlier".Length] + "later"
+            : wanted.Name[..^"later".Length] + "earlier";
+        buttons.FirstOrDefault(b => AutomationProperties.GetName(b) == other && b.IsEnabled)?.Focus(FocusState.Keyboard);
+    }
+
     private Button MoveButton(string glyph, string name, int direction, string id, IReadOnlyList<string> ids, bool enabled)
     {
         var button = new Button { Content = new FontIcon { Glyph = glyph, FontSize = 12 }, IsEnabled = enabled, Padding = new Thickness(8, 4, 8, 4) };
@@ -375,7 +424,12 @@ internal sealed class SettingsView
             _draft = _draft.WithLayout(TileLayout.Move(_draft.AsLayout(), ids, id, direction));
             Save();
             // Rebuilt after this click has finished, not from inside it: the list replaces the very button that was clicked.
-            button.DispatcherQueue.TryEnqueue(RebuildDevices);
+            _refocus = (name, direction);
+            button.DispatcherQueue.TryEnqueue(() =>
+            {
+                RebuildDevices();
+                button.DispatcherQueue.TryEnqueue(RestoreMoveFocus); // once the new buttons are in place
+            });
         };
         return button;
     }

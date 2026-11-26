@@ -30,7 +30,7 @@ internal sealed class VerticalMetersLayout : ITileLayout
         var height = Math.Round(NaturalHeight * k);
 
         // The bar: a faint track with the level drawn from the bottom up.
-        var barWidth = Math.Max(3, Math.Round(5 * k));
+        var barWidth = Math.Max(3, Math.Round(6 * k));
         var level = Math.Clamp(m.Value ?? 0, 0, 100) / 100.0;
         var track = new Grid { Width = barWidth, Height = height, VerticalAlignment = VerticalAlignment.Center };
         track.Children.Add(new Rectangle
@@ -58,7 +58,7 @@ internal sealed class VerticalMetersLayout : ITileLayout
         if (TileParts.Bolt(m, c, Math.Round(12 * k)) is { } bolt) valueLine.Children.Add(bolt);
         text.Children.Add(valueLine);
 
-        var tile = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 5 * k, VerticalAlignment = VerticalAlignment.Center };
+        var tile = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 6 * k, VerticalAlignment = VerticalAlignment.Center };
         tile.Children.Add(track);
         tile.Children.Add(text);
         return TileParts.Finish(tile, m, c);

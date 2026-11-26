@@ -19,6 +19,56 @@ internal static class Cards
 
     private static T Themed<T>(string xaml) where T : class => (T)XamlReader.Load(xaml);
 
+    private static TextBlock Tagged(TextBlock text, string tag)
+    {
+        text.Tag = tag;
+        return text;
+    }
+
+    /// <summary>The description line of a row. Always present, collapsed when empty, so it can be set later.</summary>
+    private static TextBlock Described(string? description)
+    {
+        var text = Tagged(Secondary(description ?? ""), "description");
+        text.Visibility = string.IsNullOrEmpty(description) ? Visibility.Collapsed : Visibility.Visible;
+        return text;
+    }
+
+    /// <summary>Every element below <paramref name="root"/> that is part of the content built here (not the visual tree).</summary>
+    public static IEnumerable<DependencyObject> Descendants(DependencyObject root)
+    {
+        IEnumerable<DependencyObject> children = root switch
+        {
+            Panel p => p.Children,
+            Border b => b.Child is null ? [] : [b.Child],
+            Expander e => new[] { e.Header as DependencyObject, e.Content as DependencyObject }.OfType<DependencyObject>(),
+            ContentControl c => c.Content is DependencyObject d ? [d] : [],
+            _ => [],
+        };
+        foreach (var child in children)
+        {
+            yield return child;
+            foreach (var nested in Descendants(child)) yield return nested;
+        }
+    }
+
+    private static TextBlock? FindTagged(DependencyObject root, string tag) =>
+        Descendants(root).OfType<TextBlock>().FirstOrDefault(t => t.Tag as string == tag);
+
+    /// <summary>Changes the description of a row, field or expander built here; an empty text hides the line.</summary>
+    public static void SetDescription(DependencyObject row, string? text)
+    {
+        if (FindTagged(row, "description") is not { } line) return;
+        line.Text = text ?? "";
+        line.Visibility = string.IsNullOrEmpty(text) ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    /// <summary>Changes the header text of a row, field or expander built here.</summary>
+    public static void SetHeader(DependencyObject row, string text)
+    {
+        if (FindTagged(row, "header") is { } line) line.Text = text;
+        if (row is Expander) AutomationProperties.SetName(row, text);
+    }
+
     /// <summary>A section heading such as "Presentation".</summary>
     public static TextBlock Section(string title)
     {
@@ -90,8 +140,8 @@ internal static class Cards
         }
 
         var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Spacing = 2 };
-        text.Children.Add(Primary(header));
-        if (!string.IsNullOrEmpty(description)) text.Children.Add(Secondary(description));
+        text.Children.Add(Tagged(Primary(header), "header"));
+        text.Children.Add(Described(description));
         Grid.SetColumn(text, 1);
         grid.Children.Add(text);
 
@@ -165,8 +215,8 @@ internal static class Cards
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
         var text = new StackPanel { VerticalAlignment = VerticalAlignment.Center, Spacing = 2 };
-        text.Children.Add(Primary(label));
-        if (!string.IsNullOrEmpty(description)) text.Children.Add(Secondary(description));
+        text.Children.Add(Tagged(Primary(label), "header"));
+        text.Children.Add(Described(description));
         grid.Children.Add(text);
 
         if (control is FrameworkElement fe)
