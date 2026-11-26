@@ -5,12 +5,14 @@ internal static class RepoFiles
 {
     private static readonly Lazy<string?> Root = new(FindRoot);
 
-    /// <summary>The full text of a repository file, given its path relative to the repository root. Fails the test when the repository cannot be found.</summary>
-    public static string Read(string relative)
-    {
-        var root = Root.Value ?? throw new InvalidOperationException("The repository root was not found from " + AppContext.BaseDirectory);
-        return File.ReadAllText(Path.Combine(root, relative.Replace('/', Path.DirectorySeparatorChar)));
-    }
+    /// <summary>The repository root. Fails the test when the repository cannot be found.</summary>
+    public static string RootPath => Root.Value ?? throw new InvalidOperationException("The repository root was not found from " + AppContext.BaseDirectory);
+
+    /// <summary>The full path of a repository file, given its path relative to the repository root.</summary>
+    public static string PathOf(string relative) => Path.Combine(RootPath, relative.Replace('/', Path.DirectorySeparatorChar));
+
+    /// <summary>The full text of a repository file, given its path relative to the repository root.</summary>
+    public static string Read(string relative) => File.ReadAllText(PathOf(relative));
 
     // The solution file marks the root; a .git entry does too, so renaming the solution does not switch the checks off.
     private static string? FindRoot()
