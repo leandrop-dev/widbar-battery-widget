@@ -1,5 +1,5 @@
 # Task: Review the release packaging as a whole
-Status: pending
+Status: done
 Deps: 01–10
 Review: final
 

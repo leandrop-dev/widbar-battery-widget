@@ -27,12 +27,15 @@ Tested on Windows 11 with one monitor.
 ## Install
 
 Download the `.msixbundle` and the `.cer` from the [latest release](../../releases/latest), trust the certificate once
-(Install Certificate > Local Machine > Trusted People), open the bundle, then add **Device batteries** in WidBar.
-To update, install the newer bundle over the old one.
+(Install Certificate > Local Machine > Trusted People; this needs administrator rights), open the bundle, then add
+**Device batteries** in WidBar. If the installer reports a missing `Microsoft.WindowsAppRuntime.2` dependency, install
+the Windows App SDK 2.x runtime from https://aka.ms/windowsappsdk first. To update, install the newer bundle over the
+old one.
 
 ## Build
 
-Needs the .NET 10 SDK and the [WinApp CLI](https://github.com/microsoft/WinAppCli) (`winget install Microsoft.WinAppCli`).
+Needs the .NET 10 SDK, PowerShell 7 (`winget install Microsoft.PowerShell`; the build scripts and some tests use it)
+and the [WinApp CLI](https://github.com/microsoft/WinAppCli) (`winget install Microsoft.WinAppCli`).
 
 ```powershell
 dotnet test tests\Widgets.Core.Tests
@@ -46,17 +49,29 @@ certificate whose subject matches the `Publisher` in `src\Widgets.WidBar\Package
 trust its public part (an administrator step), then:
 
 ```powershell
-.\build\package-widbar.ps1 -CertPassword <password of the .pfx>
+.\build\package-widbar.ps1 -Cert <path to the .pfx> -CertPassword <password of the .pfx>
 Add-AppxPackage artifacts\DeviceBatteries.msix
 ```
 
-Raise the `Version` in the manifest for every rebuild, and keep it above the installed one (a released 0.4.0.0
-counts): Windows refuses to reinstall the same version or to go back. WidBar must be installed; add the widget from
-its settings.
+(`-Cert` defaults to `%LOCALAPPDATA%\WinTaskbarWidgets-dev\devcert.pfx`, so pass it unless the certificate is there.)
+
+Raise the version for every rebuild and keep it above the installed one and above the latest release: Windows refuses
+to reinstall the same version or to go back. Raise it with `.\build\Set-Version.ps1 -Version X.Y.Z`, which changes the
+manifest, the project file and the plugin class together. WidBar must be installed; add the widget from its settings.
 
 `-Arch` chooses what is built: `x64` (the default), `arm64`, or `both`, which produces one signed x64 + ARM64
-`artifacts\DeviceBatteries.msixbundle`, the file a release publishes. The per-architecture publish profiles are in
+`artifacts\DeviceBatteries.msixbundle`, the same bundle a release publishes (as `DeviceBatteries-<version>.msixbundle`). The per-architecture publish profiles are in
 `src\Widgets.WidBar\Properties\PublishProfiles`; the ARM64 package cannot be tried on an x64 PC.
+
+## Release
+
+Pushing a tag such as `v0.5.0` makes `.github/workflows/release.yml` test, stamp the version
+(`build/Set-Version.ps1`), build the signed x64 + ARM64 bundle and publish a GitHub Release. The stamp is made only
+inside the build, so after a release run `build\Set-Version.ps1 -Version <released version>` and commit the result to
+keep the source in step. Running the workflow by hand with a version builds the bundle as an artifact without
+publishing. It needs the repository secrets `SIGNING_CERT_BASE64` and `SIGNING_CERT_PASSWORD`;
+`build/New-ReleaseCert.ps1` creates the certificate and prints the commands to upload them. Keep the certificate
+files: a new certificate means everyone must trust it again.
 
 ## Layout
 
@@ -75,11 +90,3 @@ shared data folder.
 
 MIT, see [LICENSE](LICENSE). Third-party components and the ported code are covered in
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
-
-## Release
-
-Pushing a tag such as `v0.5.0` makes `.github/workflows/release.yml` test, stamp the version
-(`build/Set-Version.ps1`), build the signed x64 + ARM64 bundle and publish a GitHub Release. Running the workflow
-by hand with a version builds the bundle as an artifact without publishing. It needs the repository secrets
-`SIGNING_CERT_BASE64` and `SIGNING_CERT_PASSWORD`; `build/New-ReleaseCert.ps1` creates the certificate and prints the
-commands to upload them. Keep the certificate files: a new certificate means everyone must trust it again.

@@ -29,4 +29,19 @@ public class PackagingTests
 
     [Fact]
     public void PluginIdIsLowerCaseReverseDns() => Assert.Matches(@"^[a-z0-9]+(\.[a-z0-9]+)+$", ClassId());
+
+    [Fact]
+    public void ThePackageThePluginManifestAndThePluginClassCarryTheSameVersion()
+    {
+        var identity = XDocument.Parse(RepoFiles.Read("src/Widgets.WidBar/Package.appxmanifest"))
+            .Descendants().Single(e => e.Name.LocalName == "Identity").Attribute("Version")!.Value;
+        var pluginVersion = XDocument.Parse(RepoFiles.Read("src/Widgets.WidBar/Widgets.WidBar.csproj"))
+            .Descendants().Single(e => e.Name.LocalName == "WidBarPluginVersion").Value.Trim();
+        var classes = Regex.Matches(RepoFiles.Read("src/Widgets.WidBar/MainPlugin.cs"), @"override\s+string\s+Version\s*=>\s*""([^""]+)""");
+        Assert.Single(classes);
+
+        // Build/Set-Version.ps1 stamps all three; the package version is the plugin version plus a fourth number 0.
+        Assert.Equal(pluginVersion, classes[0].Groups[1].Value);
+        Assert.Equal(pluginVersion + ".0", identity);
+    }
 }

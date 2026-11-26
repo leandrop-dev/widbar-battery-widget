@@ -22,6 +22,7 @@ param(
     [Parameter(Mandatory)][AllowEmptyString()][string]$Version,
     [string]$Root = (Split-Path $PSScriptRoot -Parent)
 )
+#Requires -Version 7
 $ErrorActionPreference = 'Stop'
 
 # ASCII digits only, no leading zeros, each part within what a package version allows (0-65535).
