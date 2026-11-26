@@ -106,14 +106,13 @@ internal sealed class SettingsView
         var look = _draft.Appearance;
         page.Children.Add(Cards.Section("Presentation"));
 
-        page.Children.Add(Cards.Row("", "Layout", null,
+        page.Children.Add(Cards.Row("", "Layout", null,
             Combo("Layout",
-                [("Vertical meters", nameof(PreviewLayout.VerticalMeters)), ("Fill capsules", nameof(PreviewLayout.FillCapsules)),
-                    ("Icon matrix", nameof(PreviewLayout.IconMatrix)), ("Minimal text", nameof(PreviewLayout.MinimalText)),
-                    ("Radial gauges", nameof(PreviewLayout.RadialGauges))],
+                [("Vertical meters", nameof(PreviewLayout.VerticalMeters)), ("Minimal text", nameof(PreviewLayout.MinimalText)),
+                    ("Minimal icons", nameof(PreviewLayout.MinimalIcons))],
                 look.Layout.ToString(), tag => Change(a => a.Layout = Enum.Parse<PreviewLayout>(tag)))));
 
-        page.Children.Add(Cards.Row("", "Icons", "Used by the Row layout",
+        page.Children.Add(Cards.Row("", "Icons", "Used by the Minimal icons layout",
             Combo("Icons", [("Outline", nameof(IconStyle.Outline)), ("Filled", nameof(IconStyle.Filled)), ("Simple", nameof(IconStyle.Simple)),
                     ("Battery gauge", nameof(IconStyle.Battery)), ("None", nameof(IconStyle.None))],
                 look.Icons.ToString(), tag => Change(a => a.Icons = Enum.Parse<IconStyle>(tag)))));

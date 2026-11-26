@@ -19,7 +19,7 @@ public enum ThemeChoice { Auto, Light, Dark }
 public enum BackgroundStyle { Acrylic, Adjustable }
 
 /// <summary>How the taskbar preview is laid out: the layouts of WidBar's System Metrics widget, minus its history graph.</summary>
-public enum PreviewLayout { VerticalMeters, FillCapsules, IconMatrix, MinimalText, RadialGauges }
+public enum PreviewLayout { VerticalMeters, MinimalText, MinimalIcons }
 
 /// <summary>The space between two tiles of the preview.</summary>
 public enum TileSpacing { Compact, Standard, Relaxed }

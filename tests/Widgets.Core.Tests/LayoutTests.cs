@@ -7,10 +7,8 @@ public class PreviewLayoutSettingsTests
 {
     [Theory]
     [InlineData(PreviewLayout.VerticalMeters)]
-    [InlineData(PreviewLayout.FillCapsules)]
-    [InlineData(PreviewLayout.IconMatrix)]
+    [InlineData(PreviewLayout.MinimalIcons)]
     [InlineData(PreviewLayout.MinimalText)]
-    [InlineData(PreviewLayout.RadialGauges)]
     public void EveryLayoutRoundTripsByName(PreviewLayout layout)
     {
         var s = new BatteryWidgetSettings();
@@ -42,8 +40,8 @@ public class PreviewLayoutSettingsTests
 
     [Fact]
     public void ANumericLayoutThatIsValidIsAccepted() =>
-        Assert.Equal(PreviewLayout.RadialGauges,
-            BatteryWidgetSettings.FromJson("""{ "Appearance": { "Layout": 4 } }""").Appearance.Layout);
+        Assert.Equal(PreviewLayout.MinimalIcons,
+            BatteryWidgetSettings.FromJson("""{ "Appearance": { "Layout": 2 } }""").Appearance.Layout);
 }
 
 public class LayoutSupportTests
@@ -51,10 +49,10 @@ public class LayoutSupportTests
     private static readonly PreviewLayout[] Layouts = Enum.GetValues<PreviewLayout>();
 
     [Fact]
-    public void IconsAreOnlyUsedByTheIconMatrix()
+    public void IconsAreOnlyUsedByTheMinimalIcons()
     {
         foreach (var l in Layouts)
-            Assert.Equal(l == PreviewLayout.IconMatrix, LayoutSupport.Honours(l, PreviewOption.Icons));
+            Assert.Equal(l == PreviewLayout.MinimalIcons, LayoutSupport.Honours(l, PreviewOption.Icons));
     }
 
     [Fact]
@@ -81,79 +79,3 @@ public class LayoutSupportTests
     }
 }
 
-public class PreviewGridTests
-{
-    [Fact]
-    public void FourItemsFillColumnByColumn()
-    {
-        Assert.Equal((0, 0), PreviewGrid.Cell(0, 4));
-        Assert.Equal((0, 1), PreviewGrid.Cell(1, 4));
-        Assert.Equal((1, 0), PreviewGrid.Cell(2, 4));
-        Assert.Equal((1, 1), PreviewGrid.Cell(3, 4));
-    }
-
-    [Fact]
-    public void ThreeItemsLeaveTheLastCellEmpty()
-    {
-        Assert.Equal((0, 0), PreviewGrid.Cell(0, 3));
-        Assert.Equal((0, 1), PreviewGrid.Cell(1, 3));
-        Assert.Equal((1, 0), PreviewGrid.Cell(2, 3));
-    }
-
-    [Theory]
-    [InlineData(0, 0)]
-    [InlineData(1, 1)]
-    [InlineData(2, 1)]
-    [InlineData(3, 2)]
-    [InlineData(4, 2)]
-    [InlineData(5, 3)]
-    public void ColumnsIsTheCountDividedByTheRowsRoundedUp(int count, int columns) =>
-        Assert.Equal(columns, PreviewGrid.Columns(count));
-
-    [Fact]
-    public void ARowCountOfOneGivesASingleRow()
-    {
-        Assert.Equal((2, 0), PreviewGrid.Cell(2, 4, rows: 1));
-        Assert.Equal(4, PreviewGrid.Columns(4, rows: 1));
-    }
-}
-
-public class ArcTests
-{
-    private const double Tolerance = 1e-9;
-
-    private static void AssertPoint((double X, double Y) expected, (double X, double Y) actual)
-    {
-        Assert.Equal(expected.X, actual.X, Tolerance);
-        Assert.Equal(expected.Y, actual.Y, Tolerance);
-    }
-
-    [Fact]
-    public void ARingStartsAtTwelveOClock() => AssertPoint((10, 0), Arc.PointAt(10, 10, 10, 0));
-
-    [Fact]
-    public void AQuarterIsAtThreeOClock() => AssertPoint((20, 10), Arc.PointAt(10, 10, 10, 0.25));
-
-    [Fact]
-    public void AHalfIsAtSixOClock() => AssertPoint((10, 20), Arc.PointAt(10, 10, 10, 0.5));
-
-    [Fact]
-    public void ThreeQuartersIsAtNineOClock() => AssertPoint((0, 10), Arc.PointAt(10, 10, 10, 0.75));
-
-    [Fact]
-    public void TheFractionIsClamped()
-    {
-        AssertPoint(Arc.PointAt(10, 10, 10, 0), Arc.PointAt(10, 10, 10, -3));
-        AssertPoint(Arc.PointAt(10, 10, 10, 1), Arc.PointAt(10, 10, 10, 7));
-    }
-
-    [Theory]
-    [InlineData(0, false)]
-    [InlineData(0.3, false)]
-    [InlineData(0.5, false)]
-    [InlineData(0.51, true)]
-    [InlineData(1, true)]
-    [InlineData(5, true)]
-    public void AnArcPastHalfARingIsLarge(double fraction, bool large) =>
-        Assert.Equal(large, Arc.IsLargeArc(fraction));
-}

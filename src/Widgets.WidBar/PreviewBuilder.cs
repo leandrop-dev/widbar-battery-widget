@@ -21,10 +21,8 @@ internal static class PreviewBuilder
 
     private static ITileLayout LayoutFor(PreviewLayout layout) => layout switch
     {
-        PreviewLayout.FillCapsules => new FillCapsulesLayout(),
-        PreviewLayout.IconMatrix => new IconMatrixLayout(),
+        PreviewLayout.MinimalIcons => new MinimalIconsLayout(),
         PreviewLayout.MinimalText => new MinimalTextLayout(),
-        PreviewLayout.RadialGauges => new RadialGaugesLayout(),
         _ => new VerticalMetersLayout(),
     };
 
