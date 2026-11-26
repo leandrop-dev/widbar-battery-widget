@@ -10,7 +10,7 @@
   <Identity
     Name="DeviceBatteries.WidBarWidget"
     Publisher="CN=Leandro Paixão"
-    Version="0.3.3.0" />
+    Version="0.3.4.0" />
 
   <Properties>
     <DisplayName>Device batteries</DisplayName>
@@ -49,7 +49,7 @@
             DisplayName="Device batteries"
             Description="Headset, mouse and controller battery levels.">
             <uap3:Properties>
-              <WidBarPluginId>com.example.devicebatteries</WidBarPluginId>
+              <WidBarPluginId>com.codemonk.devicebattery</WidBarPluginId>
               <WidBarSdkVersion>2</WidBarSdkVersion>
             </uap3:Properties>
           </uap3:AppExtension>

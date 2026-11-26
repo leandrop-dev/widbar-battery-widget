@@ -21,8 +21,8 @@ Built with C# / .NET 10 and WinUI 3, on the [WidBar widget SDK](https://github.c
 The reader protocols follow [Gabrielfch/taskbar-battery-widget](https://github.com/Gabrielfch/taskbar-battery-widget);
 see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-Status: sideloaded builds only. The plugin id (`com.example.devicebatteries`) is a placeholder to replace before any
-public release. Tested on Windows 11 with one monitor.
+Status: sideloaded builds only for now; releases are being set up. The plugin id is `com.codemonk.devicebattery`.
+Tested on Windows 11 with one monitor.
 
 ## Build
 

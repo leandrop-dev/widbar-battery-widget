@@ -22,7 +22,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <WidBarPluginId>com.example.devicebatteries</WidBarPluginId>
+    <WidBarPluginId>com.codemonk.devicebattery</WidBarPluginId>
     <WidBarPluginName>Device batteries</WidBarPluginName>
     <WidBarPluginDescription>Headset, mouse and controller battery levels.</WidBarPluginDescription>
     <WidBarPluginCategory>Utility</WidBarPluginCategory>

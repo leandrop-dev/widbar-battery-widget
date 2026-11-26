@@ -25,7 +25,7 @@ public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IW
     private double _slotHeight = DefaultSlotHeight;
     private int _previewWidth = 160;
 
-    public override string Id => "com.example.devicebatteries";
+    public override string Id => "com.codemonk.devicebattery";
     public override string Name => "Device batteries";
     public override string Version => "0.3.1";
 
