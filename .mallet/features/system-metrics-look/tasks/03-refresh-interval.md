@@ -1,5 +1,5 @@
 # Task: refresh-interval
-Status: pending
+Status: done
 Deps: 01
 
 ## Goal
