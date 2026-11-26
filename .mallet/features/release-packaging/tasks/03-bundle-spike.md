@@ -1,5 +1,5 @@
 # Task: bundle-spike
-Status: pending
+Status: done
 Deps: 02
 
 ## Goal
