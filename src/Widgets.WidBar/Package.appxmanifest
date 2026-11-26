@@ -10,7 +10,7 @@
   <Identity
     Name="DeviceBatteries.WidBarWidget"
     Publisher="CN=Leandro Paixão"
-    Version="0.2.4.0" />
+    Version="0.2.5.0" />
 
   <Properties>
     <DisplayName>Device batteries (evaluation)</DisplayName>
