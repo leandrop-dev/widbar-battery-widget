@@ -1,6 +1,6 @@
 # Task: flyout-view
 Status: pending
-Deps: 05, 06
+Deps: 12, 13
 
 ## Goal
 Rebuild the flyout with a System Metrics style tab strip and cards, one card per device with a level bar.

@@ -1,7 +1,7 @@
 # Task: Review the flyout
 Status: pending
-Deps: 06, 07
-Review: phase 2
+Deps: 13, 14
+Review: phase 3
 
 ## Goal
 The flyout shows Summary plus one tab per device kind in System Metrics' card style, with a level bar per device.

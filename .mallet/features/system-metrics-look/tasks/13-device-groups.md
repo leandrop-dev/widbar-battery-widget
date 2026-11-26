@@ -1,6 +1,6 @@
 # Task: device-groups
 Status: pending
-Deps: 05
+Deps: 12
 
 ## Goal
 Group the shown device metrics into per-kind tabs so the flyout can offer Summary plus one tab per kind that exists.
