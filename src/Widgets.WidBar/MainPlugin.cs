@@ -30,8 +30,8 @@ public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IW
     public override string Version => "0.2.0";
 
     public override int PreviewLogicalWidth => _previewWidth;
-    public override int FlyoutWidth => 360;
-    public override int FlyoutHeight => 340;
+    public override int FlyoutWidth => 560;
+    public override int FlyoutHeight => 520;
 
     public override async Task InitializeAsync(IWidgetContext context)
     {
