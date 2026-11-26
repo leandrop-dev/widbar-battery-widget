@@ -482,3 +482,8 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Release signing certificate material (the script keeps it outside the repository; this is a guard)
+DeviceBatteries-signing/
+SIGNING_CERT_BASE64.txt
+password.txt

@@ -21,7 +21,7 @@ The packaging study (system-metrics-look state.md, "Packaging study") found that
 - [x] 04-bundle-script — commit the publish profiles and make build/package-widbar.ps1 produce a signed .msixbundle [deps: 03] [parallel: no] [phase: 2]
 - [x] 05-review-bundle — review phase 2: the profiles and the bundle script [deps: 03, 04] [parallel: no] [phase: 2] [review]
 - [x] 06-version-stamp — a script that stamps one version into the manifest, csproj and plugin class, with tests [deps: 05] [parallel: yes] [phase: 3]
-- [ ] 07-release-cert — a script that makes the dedicated release certificate and prepares the two GitHub secrets [deps: 05] [parallel: yes] [phase: 3]
+- [x] 07-release-cert — a script that makes the dedicated release certificate and prepares the two GitHub secrets [deps: 05] [parallel: yes] [phase: 3]
 - [ ] 08-release-workflow — the GitHub Actions workflow that builds and publishes a release from a tag [deps: 04, 06, 07] [parallel: no] [phase: 3]
 - [ ] 09-first-release — set the secrets, push the first tag and install the released bundle [deps: 08] [parallel: no] [phase: 3]
 - [ ] 10-review-release — review phase 3: stamping, certificate handling and the workflow [deps: 06, 07, 08, 09] [parallel: no] [phase: 3] [review]

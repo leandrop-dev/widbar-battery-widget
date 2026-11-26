@@ -1,5 +1,5 @@
 # Task: release-cert
-Status: pending
+Status: done
 Deps: 05
 
 ## Goal
