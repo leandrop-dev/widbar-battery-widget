@@ -18,7 +18,7 @@ WidBar creates the flyout and settings windows (title bar, Save/Cancel, backdrop
 - [x] 01-settings-model — add the new System Metrics style options to the settings model, sanitised and defaulted [deps: —] [parallel: yes] [phase: 1]
 - [x] 02-card-primitives — theme-aware card, section, expander and row helpers for settings and flyout [deps: —] [parallel: yes] [phase: 1]
 - [x] 03-refresh-interval — make the poll interval settable and apply the smallest value among placed copies [deps: 01] [parallel: no] [phase: 1]
-- [ ] 04-settings-page — rebuild the settings page: live preview card, Presentation, Devices and colors, Data refresh [deps: 01, 02, 03] [parallel: no] [phase: 1]
+- [x] 04-settings-page — rebuild the settings page: live preview card, Presentation, Devices and colors, Data refresh [deps: 01, 02, 03] [parallel: no] [phase: 1]
 - [ ] 05-review-settings — review phase 1: the new settings model and page [deps: 01, 02, 03, 04] [parallel: no] [phase: 1] [review]
 - [ ] 06-device-groups — group metrics into Summary plus per-kind tabs in Widgets.Core [deps: 05] [parallel: yes] [phase: 2]
 - [ ] 07-flyout-view — rebuild the flyout with a tab strip and device cards [deps: 05, 06] [parallel: no] [phase: 2]
