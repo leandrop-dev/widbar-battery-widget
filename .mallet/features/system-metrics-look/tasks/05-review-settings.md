@@ -1,5 +1,5 @@
 # Task: Review the settings model and page
-Status: pending
+Status: done
 Deps: 01, 02, 03, 04
 Review: phase 1
 
