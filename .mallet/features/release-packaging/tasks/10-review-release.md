@@ -1,5 +1,5 @@
 # Task: Review the release pipeline
-Status: pending
+Status: done
 Deps: 06, 07, 08, 09
 Review: phase 3
 

@@ -24,5 +24,5 @@ The packaging study (system-metrics-look state.md, "Packaging study") found that
 - [x] 07-release-cert — a script that makes the dedicated release certificate and prepares the two GitHub secrets [deps: 05] [parallel: yes] [phase: 3]
 - [x] 08-release-workflow — the GitHub Actions workflow that builds and publishes a release from a tag [deps: 04, 06, 07] [parallel: no] [phase: 3]
 - [x] 09-first-release — set the secrets, push the first tag and install the released bundle [deps: 08] [parallel: no] [phase: 3]
-- [ ] 10-review-release — review phase 3: stamping, certificate handling and the workflow [deps: 06, 07, 08, 09] [parallel: no] [phase: 3] [review]
+- [x] 10-review-release — review phase 3: stamping, certificate handling and the workflow [deps: 06, 07, 08, 09] [parallel: no] [phase: 3] [review]
 - [ ] 11-review-final — review the whole change: the widget ships under its own id as a signed x64 + ARM64 release from a tag [deps: 01–10] [parallel: no] [review]
