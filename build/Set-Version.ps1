@@ -24,9 +24,11 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-if ($Version -notmatch '^v?(?<core>\d+\.\d+\.\d+)(?<suffix>-[0-9A-Za-z][0-9A-Za-z.-]*)?$') {
-    Write-Error "Version '$Version' is not X.Y.Z (a leading v and a -suffix are allowed)."
-    exit 1
+# ASCII digits only, no leading zeros, each part within what a package version allows (0-65535).
+$part = '(0|[1-9][0-9]{0,4})'
+if ($Version -cnotmatch "^v?(?<core>$part\.$part\.$part)(?<suffix>-[0-9A-Za-z][0-9A-Za-z.-]*)?\z" -or
+    ($Matches['core'] -split '\.' | Where-Object { [int]$_ -gt 65535 })) {
+    throw "Version '$Version' is not X.Y.Z with each number 0-65535 (a leading v and a -suffix are allowed)."
 }
 $core = $Matches['core']
 $prerelease = [bool]$Matches['suffix']
@@ -45,8 +47,7 @@ $changes = foreach ($t in $targets) {
     $text = $latin1.GetString([IO.File]::ReadAllBytes($t.File))
     $found = [regex]::Matches($text, $t.Pattern, 'Singleline').Count
     if ($found -ne 1) {
-        Write-Error "Expected exactly one match in $($t.File) but found $found; nothing was changed."
-        exit 1
+        throw "Expected exactly one match in $($t.File) but found $found; nothing was changed."
     }
     $replaced = [regex]::Replace($text, $t.Pattern, { param($m) $m.Groups[1].Value + $t.Value + $m.Groups[2].Value }.GetNewClosure(), 'Singleline')
     [pscustomobject]@{ File = $t.File; Text = $replaced }

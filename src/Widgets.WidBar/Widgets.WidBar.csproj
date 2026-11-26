@@ -26,7 +26,7 @@
     <WidBarPluginName>Device batteries</WidBarPluginName>
     <WidBarPluginDescription>Headset, mouse and controller battery levels.</WidBarPluginDescription>
     <WidBarPluginCategory>Utility</WidBarPluginCategory>
-    <WidBarPluginVersion>0.2.0</WidBarPluginVersion>
+    <WidBarPluginVersion>0.4.0</WidBarPluginVersion>
     <WidBarPluginPreviewWidth>420</WidBarPluginPreviewWidth>
     <WidBarPluginConfigurable>true</WidBarPluginConfigurable>
   </PropertyGroup>

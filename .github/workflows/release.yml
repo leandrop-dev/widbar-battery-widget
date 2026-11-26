@@ -48,6 +48,8 @@ jobs:
 
       - name: Check out
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
@@ -73,9 +75,10 @@ jobs:
         env:
           MANUAL_VERSION: ${{ inputs.version }}
         run: |
-          $raw = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME } else { $env:MANUAL_VERSION }
+          $raw = if ($env:GITHUB_EVENT_NAME -eq 'push') { $env:GITHUB_REF_NAME } else { $env:MANUAL_VERSION }
           # Fails before anything is built when the tag is not X.Y.Z (with an optional -suffix).
-          # The script sets no exit code on success, so $LASTEXITCODE is null then: test it for truth, not against 0.
+          # A rejected version makes the script throw, which fails this step; the script sets no exit code on success,
+          # so $LASTEXITCODE can be null: test it for truth, never against 0.
           $out = & ./build/Set-Version.ps1 -Version $raw
           if ($LASTEXITCODE) { throw "Version '$raw' was rejected by build/Set-Version.ps1." }
           $out >> $env:GITHUB_OUTPUT
@@ -98,11 +101,14 @@ jobs:
 
           $v = '${{ steps.ver.outputs.version }}'
           New-Item -ItemType Directory -Force dist | Out-Null
-          ./build/package-widbar.ps1 -Cert $pfx -CertPassword $env:CERT_PASSWORD -Arch both -Output "dist/DeviceBatteries-$v.msixbundle"
-
           # The public certificate, so people can trust the package when sideloading.
           [IO.File]::WriteAllBytes("dist/DeviceBatteries-$v.cer", $cert.Export('Cert'))
-          Remove-Item $pfx -Force
+          try {
+            ./build/package-widbar.ps1 -Cert $pfx -CertPassword $env:CERT_PASSWORD -Arch both -Output "dist/DeviceBatteries-$v.msixbundle"
+          }
+          finally {
+            Remove-Item $pfx -Force -ErrorAction SilentlyContinue   # the key never stays on disk, even when the build fails
+          }
 
       - name: Write the release notes
         shell: pwsh
@@ -111,11 +117,11 @@ jobs:
           @"
           ## Install
 
-          1. Download **DeviceBatteries-$v.cer**, open it, choose **Install Certificate** > **Local Machine** and place it in **Trusted People**. This is needed once, because the package is signed with the project's own certificate.
+          1. Download **DeviceBatteries-$v.cer**, open it, choose **Install Certificate** > **Local Machine** (needs administrator rights) and place it in **Trusted People**. This is needed once, because the package is signed with the project's own certificate.
           2. Download and open **DeviceBatteries-$v.msixbundle**, then choose **Install**.
           3. Open WidBar and add **Device batteries** from the catalog. If it is missing, press **Refresh** on the Layout page.
 
-          Requires Windows 11 and WidBar. The bundle holds x64 and ARM64 packages; Windows picks the right one.
+          Requires Windows 11 and WidBar. The bundle holds x64 and ARM64 packages; Windows picks the right one. If the installer reports a missing **Microsoft.WindowsAppRuntime.2** dependency, install the Windows App SDK 2.x runtime from https://aka.ms/windowsappsdk and open the bundle again.
 
           ## Update
 
@@ -132,7 +138,7 @@ jobs:
           if-no-files-found: error
 
       - name: Publish the GitHub Release
-        if: ${{ github.ref_type == 'tag' }}
+        if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
         uses: softprops/action-gh-release@v2
         with:
           name: Device batteries ${{ steps.ver.outputs.version }}

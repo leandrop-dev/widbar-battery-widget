@@ -21,8 +21,14 @@ Built with C# / .NET 10 and WinUI 3, on the [WidBar widget SDK](https://github.c
 The reader protocols follow [Gabrielfch/taskbar-battery-widget](https://github.com/Gabrielfch/taskbar-battery-widget);
 see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-Status: sideloaded builds only for now; releases are being set up. The plugin id is `com.codemonk.devicebattery`.
+Status: signed releases on GitHub (sideload, not in the Microsoft Store). The plugin id is `com.codemonk.devicebattery`.
 Tested on Windows 11 with one monitor.
+
+## Install
+
+Download the `.msixbundle` and the `.cer` from the [latest release](../../releases/latest), trust the certificate once
+(Install Certificate > Local Machine > Trusted People), open the bundle, then add **Device batteries** in WidBar.
+To update, install the newer bundle over the old one.
 
 ## Build
 
@@ -44,8 +50,9 @@ trust its public part (an administrator step), then:
 Add-AppxPackage artifacts\DeviceBatteries.msix
 ```
 
-Raise the `Version` in the manifest for every rebuild: Windows refuses to reinstall the same version.
-WidBar must be installed; add the widget from its settings.
+Raise the `Version` in the manifest for every rebuild, and keep it above the installed one (a released 0.4.0.0
+counts): Windows refuses to reinstall the same version or to go back. WidBar must be installed; add the widget from
+its settings.
 
 `-Arch` chooses what is built: `x64` (the default), `arm64`, or `both`, which produces one signed x64 + ARM64
 `artifacts\DeviceBatteries.msixbundle`, the file a release publishes. The per-architecture publish profiles are in
@@ -68,3 +75,11 @@ shared data folder.
 
 MIT, see [LICENSE](LICENSE). Third-party components and the ported code are covered in
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+
+## Release
+
+Pushing a tag such as `v0.5.0` makes `.github/workflows/release.yml` test, stamp the version
+(`build/Set-Version.ps1`), build the signed x64 + ARM64 bundle and publish a GitHub Release. Running the workflow
+by hand with a version builds the bundle as an artifact without publishing. It needs the repository secrets
+`SIGNING_CERT_BASE64` and `SIGNING_CERT_PASSWORD`; `build/New-ReleaseCert.ps1` creates the certificate and prints the
+commands to upload them. Keep the certificate files: a new certificate means everyone must trust it again.

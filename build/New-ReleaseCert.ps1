@@ -32,7 +32,11 @@ $cer = Join-Path $OutDir 'DeviceBatteries.cer'
 $pwFile = Join-Path $OutDir 'password.txt'
 $b64File = Join-Path $OutDir 'SIGNING_CERT_BASE64.txt'
 
-if ((Test-Path $pfx) -and (Test-Path $pwFile)) {
+if ((Test-Path $pfx) -and -not (Test-Path $pwFile)) {
+    # Creating a new key here would overwrite the one every installed copy was trusted for.
+    throw "$pfx exists but $pwFile does not. Put the password back in password.txt, or move the old .pfx away on purpose to start over."
+}
+if (Test-Path $pfx) {
     Write-Host "Reusing the existing certificate in $OutDir"
 }
 else {
@@ -53,7 +57,7 @@ else {
 
     Export-PfxCertificate -Cert $cert -FilePath $pfx -Password $password | Out-Null
     Export-Certificate -Cert $cert -FilePath $cer | Out-Null
-    Remove-Item "Cert:\CurrentUser\My\$($cert.Thumbprint)"   # keep it out of the local store
+    Remove-Item "Cert:\CurrentUser\My\$($cert.Thumbprint)" -DeleteKey   # keep it, and its key container, off this PC's store
     Set-Content -Path $pwFile -Value $plain -Encoding ascii
 }
 

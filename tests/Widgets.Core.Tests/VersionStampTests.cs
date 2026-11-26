@@ -82,6 +82,9 @@ public sealed class VersionStampTests : IDisposable
     [InlineData("1.2")]
     [InlineData("abc")]
     [InlineData("1.2.3.4")]
+    [InlineData("70000.0.0")]
+    [InlineData("01.2.3")]
+    [InlineData("١.٢.٣")]
     [InlineData("")]
     public void ABadVersionFailsAndLeavesTheFilesUntouched(string version)
     {

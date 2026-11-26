@@ -27,7 +27,7 @@ public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IW
 
     public override string Id => "com.codemonk.devicebattery";
     public override string Name => "Device batteries";
-    public override string Version => "0.3.1";
+    public override string Version => "0.4.0";
 
     public override int PreviewLogicalWidth => _previewWidth;
     public override int FlyoutWidth => 560;
