@@ -75,8 +75,9 @@ jobs:
         run: |
           $raw = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME } else { $env:MANUAL_VERSION }
           # Fails before anything is built when the tag is not X.Y.Z (with an optional -suffix).
+          # The script sets no exit code on success, so $LASTEXITCODE is null then: test it for truth, not against 0.
           $out = & ./build/Set-Version.ps1 -Version $raw
-          if ($LASTEXITCODE -ne 0) { throw "Version '$raw' was rejected by build/Set-Version.ps1." }
+          if ($LASTEXITCODE) { throw "Version '$raw' was rejected by build/Set-Version.ps1." }
           $out >> $env:GITHUB_OUTPUT
           $out
 
