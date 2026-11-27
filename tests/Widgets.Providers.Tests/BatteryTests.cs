@@ -343,19 +343,42 @@ public class BatteryTests
         new(id, name, DeviceKind.Gamepad, pct, false, true, note);
 
     [Fact]
-    public async Task Provider_AConnectedPadReplacesAnOlderPadInsteadOfDimmingIt()
+    public async Task Provider_AConnectedPadMakesAnOlderPadStepAsideButKeepsItsEntry()
     {
         var reader = new ScriptedReader();
         reader.Steps.Enqueue(() => [Pad("dualsense:0ce6", "DualSense", 100)]);
         reader.Steps.Enqueue(() => [Pad("xinput:0", "Xbox Controller", null, "USB")]); // DualSense unplugged, Xbox plugged in
         var p = new BatteryProvider([reader]);
         await p.PollAsync(default);
-        var m = Assert.Single(await p.PollAsync(default));
-        Assert.Equal("battery:xinput:0", m.Id);
-        Assert.Equal("USB", MetricFormat.Value(m));
-        Assert.Null(m.Value);
-        Assert.False(m.Stale);
+        var list = await p.PollAsync(default);
+
+        // Each pad is its own entry: the settings page keeps the DualSense row (label, colour, order) while the taskbar drops it.
+        var xbox = Assert.Single(list, m => m.Id == "battery:xinput:0");
+        Assert.Equal("USB", MetricFormat.Value(xbox));
+        Assert.False(xbox.Superseded);
+        Assert.Null(xbox.OfflineSince);
+        var ds = Assert.Single(list, m => m.Id == "battery:dualsense:0ce6");
+        Assert.True(ds.Superseded);
+        Assert.NotNull(ds.OfflineSince);
+        Assert.Equal(100, ds.Value);
+        Assert.Equal(2, list.Count);
     }
+
+    [Fact]
+    public async Task Provider_TheOlderPadReturnsTheMomentItIsConnectedAgainAndTheOtherStepsAside()
+    {
+        var reader = new ScriptedReader();
+        reader.Steps.Enqueue(() => [Pad("dualsense:0ce6", "DualSense", 100)]);
+        reader.Steps.Enqueue(() => [Pad("xinput:0", "Xbox Controller", 65)]);
+        reader.Steps.Enqueue(() => [Pad("dualsense:0ce6", "DualSense", 90)]); // Xbox pad switched off, DualSense back
+        var p = new BatteryProvider([reader]);
+        await p.PollAsync(default);
+        await p.PollAsync(default);
+        var list = await p.PollAsync(default);
+        Assert.False(Assert.Single(list, m => m.Id == "battery:dualsense:0ce6").Superseded);
+        Assert.True(Assert.Single(list, m => m.Id == "battery:xinput:0").Superseded);
+    }
+
 
     [Fact]
     public async Task Provider_WithNoPadConnectedTheLastPadStaysDimmed()
@@ -571,6 +594,46 @@ public class BatteryCacheTests
         Assert.Equal(36, m.Value);
         Assert.True(m.Stale);
         Assert.Equal(T0, m.Updated); // shows when the value was actually read
+    }
+
+    [Fact]
+    public async Task OfflineSinceIsWhenTheDeviceWasLastConnected()
+    {
+        var time = new FakeTime(T0);
+        var steps = new Queue<IReadOnlyList<BatteryReading>>([
+            [Mouse(40)],                              // connected
+            [],                                       // silent
+            [Mouse(null) with { Connected = false }], // reported off
+        ]);
+        var p = new BatteryProvider([new Reader(steps.Dequeue)], time: time);
+
+        Assert.Null(Assert.Single(await p.PollAsync(default)).OfflineSince);
+        time.Now = T0.AddMinutes(20);
+        Assert.Equal(T0, Assert.Single(await p.PollAsync(default)).OfflineSince);
+        time.Now = T0.AddMinutes(50);
+        Assert.Equal(T0, Assert.Single(await p.PollAsync(default)).OfflineSince);
+    }
+
+    [Fact]
+    public async Task ADeviceFirstMetSwitchedOffIsOfflineFromNowNotFromTheEpoch()
+    {
+        var time = new FakeTime(T0);
+        var off = Mouse(null) with { Connected = false };
+        var m = Assert.Single(await new BatteryProvider([new Reader(() => [off])], time: time).PollAsync(default));
+        Assert.Equal(T0, m.OfflineSince);
+    }
+
+    [Fact]
+    public async Task ARememberedDeviceIsOfflineFromWhenItWasLastHeard()
+    {
+        using var t = new TempPath();
+        var cache = new BatteryCache(t.File_);
+        var time = new FakeTime(T0);
+        await new BatteryProvider([new Reader(() => [Mouse(36)])], time: time, cache: cache).PollAsync(default);
+
+        time.Now = T0.AddHours(5);
+        var m = Assert.Single(await new BatteryProvider([new Reader(() => [])], time: time, cache: cache).PollAsync(default));
+        Assert.Equal(T0, m.OfflineSince);
     }
 
     [Fact]

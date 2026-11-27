@@ -101,7 +101,9 @@ internal sealed class SettingsView
 
     private void RefreshPreview()
     {
-        var shown = TileLayout.Apply(_devices, _draft.AsLayout());
+        var now = DateTimeOffset.UtcNow;
+        var present = _devices.Where(m => DevicePresence.IsShown(m, now, _draft.HideAfter)).ToList();
+        var shown = TileLayout.Apply(present, _draft.AsLayout());
         var width = PreviewBuilder.Fill(_previewRow, _draft, shown, _slotHeight, _root.ActualTheme == ElementTheme.Dark);
         _previewWidth.Text = $"{width} px";
     }
@@ -200,6 +202,7 @@ internal sealed class SettingsView
         page.Children.Add(Cards.Row("", "Low battery", "Flag a device at or below this level (%)",
             Number("Flag a device as low at or below (%)", 5, 50, _draft.LowThreshold, 5, v => ChangeSettings(s => s.LowThreshold = v))));
 
+        BuildHideDisconnected(page);
         page.Children.Add(_deviceList);
         RebuildDevices();
     }
@@ -209,6 +212,13 @@ internal sealed class SettingsView
         page.Children.Add(Cards.Section("Data refresh"));
         page.Children.Add(Cards.Row("", "Refresh interval", "A slower interval reduces background activity. Minutes, 1 to 10. With several copies placed, the fastest one sets the pace.",
             Number("Refresh interval (minutes)", 1, 10, _draft.RefreshMinutes, 1, v => ChangeSettings(s => s.RefreshMinutes = v))));
+    }
+
+    private void BuildHideDisconnected(StackPanel page)
+    {
+        page.Children.Add(Cards.Row("", "Hide disconnected devices", "A device that has been disconnected this many minutes leaves the taskbar and comes back when it reports again. 0 keeps it, dimmed. Checked at each refresh.",
+            Number("Hide a disconnected device after (minutes, 0 = never)", 0, 1440, _draft.HideAfterMinutes, 5,
+                v => { ChangeSettings(s => s.HideAfterMinutes = v); RebuildDevices(); })));
     }
 
     // ---- controls
@@ -306,7 +316,9 @@ internal sealed class SettingsView
             });
 
             Expander? expander = null;
-            expander = Cards.Expander(GlyphFor(device.Icon), _draft.LabelFor(id, device.Label), MetricFormat.Value(device),
+            var why = DevicePresence.WhyHidden(device, DateTimeOffset.UtcNow, _draft.HideAfter);
+            expander = Cards.Expander(GlyphFor(device.Icon), _draft.LabelFor(id, device.Label),
+                why is null ? MetricFormat.Value(device) : $"{MetricFormat.Value(device)} · {why}",
             [
                 Cards.Field("Label", LabelBox(id, device.Label, name => Cards.SetHeader(expander!, name))),
                 Cards.Field("Color", ColourBox(id, device.Label)),

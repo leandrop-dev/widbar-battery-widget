@@ -35,10 +35,18 @@ public sealed class BatteryWidgetSettings
     /// <summary>How often the batteries are read, in minutes (1 to 10).</summary>
     public int RefreshMinutes { get; set; } = 1;
 
+    /// <summary>A device that has been disconnected this many minutes leaves the taskbar and flyout (0 = never). It comes back when it reports again.</summary>
+    public int HideAfterMinutes { get; set; } = 30;
+
+    /// <summary><see cref="HideAfterMinutes"/> as a span, or null for never.</summary>
+    [System.Text.Json.Serialization.JsonIgnore]
+    public TimeSpan? HideAfter => HideAfterMinutes > 0 ? TimeSpan.FromMinutes(HideAfterMinutes) : null;
+
     public BatteryWidgetSettings Clone() => new()
     {
         Order = [.. Order ?? []], Hidden = [.. Hidden ?? []], Appearance = (Appearance ?? new AppearanceSettings()).Clone(), LowThreshold = LowThreshold,
         Labels = new(Labels ?? [], StringComparer.Ordinal), Colours = new(Colours ?? [], StringComparer.Ordinal), RefreshMinutes = RefreshMinutes,
+        HideAfterMinutes = HideAfterMinutes,
     };
 
     /// <summary>The user's name for a device, or <paramref name="fallback"/> (the device's own name) when there is none.</summary>
@@ -84,6 +92,7 @@ public sealed class BatteryWidgetSettings
         next.Appearance = AppearanceSettings.Sanitize(s.Appearance ?? new AppearanceSettings());
         next.LowThreshold = Math.Clamp(s.LowThreshold, 5, 50);
         next.RefreshMinutes = Math.Clamp(s.RefreshMinutes, 1, 10);
+        next.HideAfterMinutes = Math.Clamp(s.HideAfterMinutes, 0, 1440);
 
         next.Labels = [];
         foreach (var (id, label) in s.Labels ?? [])

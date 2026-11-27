@@ -20,6 +20,7 @@ public sealed class BatteryProvider : IProvider
     private readonly TimeProvider _time;
     private readonly Dictionary<string, Seen> _lastGood = new(StringComparer.Ordinal);
     private readonly Dictionary<string, BatteryReading> _known = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, DateTimeOffset> _lastConnected = new(StringComparer.Ordinal);
 
     private readonly BatteryCache? _cache;
 
@@ -38,6 +39,7 @@ public sealed class BatteryProvider : IProvider
             var reading = new BatteryReading(c.Id, c.Name, c.Kind, c.Percent, false, true);
             _known[c.Id] = reading;
             _lastGood[c.Id] = new Seen(reading, c.At);
+            _lastConnected[c.Id] = c.At;
         }
     }
 
@@ -70,6 +72,9 @@ public sealed class BatteryProvider : IProvider
         foreach (var (id, r) in fresh)
         {
             _known[id] = r;
+            // A device first met while switched off counts as disconnected from now, so it is not hidden the moment it appears.
+            if (r.Connected) _lastConnected[id] = now;
+            else _lastConnected.TryAdd(id, now);
             if (r.Percent is null) continue;
             changed |= !_lastGood.TryGetValue(id, out var before) || before.Reading.Percent != r.Percent;
             _lastGood[id] = new Seen(r, now);
@@ -79,31 +84,40 @@ public sealed class BatteryProvider : IProvider
             _cache?.Save(_lastGood.Values.Select(s => new CachedBattery(
                 s.Reading.Id, s.Reading.Name, s.Reading.Kind, s.Reading.Percent!.Value, s.At)));
 
-        // A game controller that is plugged in or paired replaces the ones that are not: you hold one at a time, so the
-        // old pad's last value would only be clutter. Other kinds (a sleeping mouse) keep their dimmed last value.
+        // A game controller that is plugged in or paired makes the ones that are not step aside: you hold one at a time.
+        // They stay in the list, flagged, so their label, colour and place are kept for when they come back; the widget
+        // leaves them off the taskbar. Other kinds (a sleeping mouse) are not affected.
         var padInUse = fresh.Values.Any(r => r.Kind == DeviceKind.Gamepad && r.Connected);
 
         var metrics = new List<Metric>();
         foreach (var (id, known) in _known.OrderBy(k => k.Key, StringComparer.Ordinal))
         {
             var live = fresh.TryGetValue(id, out var f) ? f : null;
-            if (padInUse && known.Kind == DeviceKind.Gamepad && live is not { Connected: true }) continue;
+            Metric? tile = null;
             if (live?.Percent is { } pct)
             {
-                metrics.Add(Tile(live, pct, now, stale: false));
+                tile = Tile(live, pct, now, stale: false);
             }
             else if (live is { Connected: true, Note: { } note })
             {
-                metrics.Add(Tile(live, null, now, stale: false) with { Text = note }); // connected with no battery, e.g. a wired pad
+                tile = Tile(live, null, now, stale: false) with { Text = note }; // connected with no battery, e.g. a wired pad
             }
             else if (live is { Connected: false })
             {
-                metrics.Add(Tile(live, null, now, stale: false)); // switched off: shown as "--", not as an old value
+                tile = Tile(live, null, now, stale: false); // switched off: shown as "--", not as an old value
             }
             else if (_lastGood.TryGetValue(id, out var seen))
             {
-                metrics.Add(Tile(seen.Reading, seen.Reading.Percent, seen.At, stale: true)); // silent: keep the last value
+                tile = Tile(seen.Reading, seen.Reading.Percent, seen.At, stale: true); // silent: keep the last value
             }
+            if (tile is null) continue;
+
+            var connected = live is { Connected: true };
+            metrics.Add(tile with
+            {
+                OfflineSince = connected ? null : _lastConnected.GetValueOrDefault(id, now),
+                Superseded = padInUse && known.Kind == DeviceKind.Gamepad && !connected,
+            });
         }
         return metrics;
     }

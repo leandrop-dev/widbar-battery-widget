@@ -101,7 +101,12 @@ public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IW
         return ValueTask.CompletedTask;
     }
 
-    private IReadOnlyList<Metric> Shown() => TileLayout.Apply(BatteryHub.Snapshot(), _settings.AsLayout());
+    private IReadOnlyList<Metric> Shown()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var present = BatteryHub.Snapshot().Where(m => DevicePresence.IsShown(m, now, _settings.HideAfter)).ToList();
+        return TileLayout.Apply(present, _settings.AsLayout());
+    }
 
     private void OnBatteriesChanged() => _ui?.TryEnqueue(() =>
     {

@@ -22,6 +22,8 @@ public enum MetricKind
 /// <param name="Charging">True when a battery is charging right now (shown with a bolt).</param>
 /// <param name="Text">Short text shown instead of the value (for example "USB" for a wired pad with no battery).</param>
 /// <param name="Icon">Which icon to draw (see <see cref="MetricIcons"/>), or null for none.</param>
+/// <param name="OfflineSince">For a device that is not connected right now: when it was last connected. Null while it is connected.</param>
+/// <param name="Superseded">True when another device of the same kind is connected and this one steps aside (see <see cref="DevicePresence"/>).</param>
 public sealed record Metric(
     string Id,
     string Label,
@@ -34,7 +36,9 @@ public sealed record Metric(
     bool Approximate = false,
     bool Charging = false,
     string? Text = null,
-    string? Icon = null);
+    string? Icon = null,
+    DateTimeOffset? OfflineSince = null,
+    bool Superseded = false);
 
 /// <summary>Names of the icons a tile can carry. The app draws each one in the chosen icon style.</summary>
 public static class MetricIcons

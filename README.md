@@ -8,6 +8,7 @@ devices on the Windows taskbar, with a flyout for detail and a settings page.
 - PlayStation DualSense (over USB), Xbox-style controllers (coarse levels), and Bluetooth LE devices that expose the
   standard Battery Service (not yet verified inside WidBar)
 - A bolt next to a device that is charging, a dimmed last value for a device that is asleep, and a "!" when a level is low
+- A device that stays disconnected for 30 minutes (configurable, or never) leaves the taskbar and returns when it reports again; when you switch game controllers, the one you stopped using steps aside for the one now connected
 - Settings, laid out like WidBar's System Metrics widget with a live preview: layout (vertical meters, minimal text, minimal icons),
   value size, spacing, alignment and width, labels, percent symbol, separators and charging bolt, coloured labels and
   values, the Windows accent colour, battery colours (classic, colour-blind, pastel, high contrast, mono, custom),
