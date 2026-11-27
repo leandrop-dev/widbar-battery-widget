@@ -1,93 +1,102 @@
-# WidBar battery widget
+# Device batteries for WidBar
 
-A [WidBar](https://apps.microsoft.com/detail/9pkldnm83tp9) widget that shows the battery level of your wireless
-devices on the Windows taskbar, with a flyout for detail and a settings page.
+A widget for [WidBar](https://apps.microsoft.com/detail/9pkldnm83tp9) that puts the battery level of your wireless
+headset, mouse and controller on the Windows taskbar. Click it for a flyout with the details.
 
-- SteelSeries headsets and mice (Arctis Nova 3/5/7, Arctis 7+, GameBuds, Rival 3 Wireless; Arctis Nova Pro Wireless is
-  included but unverified: no unit was available to test it)
-- PlayStation DualSense (over USB), Xbox-style controllers (coarse levels), and Bluetooth LE devices that expose the
-  standard Battery Service (not yet verified inside WidBar)
-- A bolt next to a device that is charging, a dimmed last value for a device that is asleep, and a "!" when a level is low
-- A device that stays disconnected for 30 minutes (configurable, or never) leaves the taskbar and returns when it reports again; when you switch game controllers, the one you stopped using steps aside for the one now connected
-- Settings, laid out like WidBar's System Metrics widget with a live preview: layout (vertical meters, minimal text, minimal icons),
-  value size, spacing, alignment and width, labels, percent symbol, separators and charging bolt, coloured labels and
-  values, the Windows accent colour, battery colours (classic, colour-blind, pastel, high contrast, mono, custom),
-  icon style for the minimal icons layout, which devices show and in what order, a name and colour per device, the low-battery level and the refresh interval.
-  Options a layout does not draw are greyed out
-- A flyout on click with a Summary tab and one tab per kind of device (headsets, mice, keyboards, controllers), showing each level, a level bar, its state and when it was last seen
+![The widget on the taskbar](docs/images/taskbar.png)
 
-It does not read PC load or temperatures: WidBar's own System Metrics widget covers those.
+I wrote it because none of the widgets I found for WidBar read peripheral batteries, and the vendor apps only show
+them while their own window is open. It reads each device directly, nothing is sent anywhere, and there is no account
+to create.
 
-Built with C# / .NET 10 and WinUI 3, on the [WidBar widget SDK](https://github.com/andelby/widbar-widget-template).
-The reader protocols follow [Gabrielfch/taskbar-battery-widget](https://github.com/Gabrielfch/taskbar-battery-widget);
-see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+## What it shows
 
-Status: signed releases on GitHub (sideload, not in the Microsoft Store). The plugin id is `com.codemonk.devicebattery`.
-Tested on Windows 11 with one monitor.
+- One tile per device with its level, in a colour that follows the level. A bolt means the device is charging, and a
+  "!" means it is at or below your low-battery level (20% unless you change it).
+- A device that is asleep keeps its last known level, dimmed. The levels are remembered between runs, so a mouse that
+  is off when you start the PC still has a value.
+- A device that stays disconnected for 30 minutes leaves the taskbar and comes back when it reports again. You can
+  change the time or turn it off. It stays in the settings list, so its name and colour are kept.
+- When you switch between game controllers, the one you stopped using steps aside for the one that is connected now.
+- A flyout on click, with a summary and a tab for each kind of device, showing the level, a bar, the state and when it
+  was last heard from.
+
+![The flyout](docs/images/flyout.png)
+
+## Supported devices
+
+| Device | Connection | How it is read | Tested on real hardware |
+|---|---|---|---|
+| SteelSeries Arctis Nova 7 (7P, 7X, Gen 2, Diablo IV, WoW) | USB dongle | SteelSeries HID status request | Yes (Nova 7) |
+| SteelSeries Arctis Nova 5 and 5X | USB dongle | same | No |
+| SteelSeries Arctis Nova 3P and 3X Wireless | USB dongle | same | No |
+| SteelSeries Arctis 7+ (PlayStation, Xbox, Destiny) | USB dongle | same | No |
+| SteelSeries Arctis GameBuds | USB dongle | same | No |
+| SteelSeries Arctis Nova Pro Wireless and Pro Wireless X | USB base station | same, different request | No, and the reply layout is unconfirmed |
+| SteelSeries Rival 3 Wireless | USB dongle | SteelSeries HID status request | Yes |
+| Sony DualSense and DualSense Edge | USB cable | HID input report | DualSense yes, Edge no |
+| Xbox controllers, and other pads that report through XInput | Xbox wireless adapter or USB | XInput | No |
+| Bluetooth LE devices with the standard Battery Service | Bluetooth | Windows Bluetooth stack (GATT 0x180F) | No, not inside WidBar yet |
+
+Some limits worth knowing before you install:
+
+- **DualSense over Bluetooth is not read.** Over Bluetooth the pad sends a different report that this widget does not
+  decode. Plug it in with a cable.
+- **XInput only reports four coarse levels**, so an Xbox pad shows 5, 30, 65 or 100%. A wired Xbox pad has no battery
+  and shows "USB".
+- **A pad in XInput mode is called "Xbox Controller"** whatever it really is (some 8BitDo pads can run in this mode),
+  and two such pads in the same slot share one entry. I have not tested any 8BitDo pad.
+- **Wireless headsets need their USB dongle plugged in.** Over plain Bluetooth the SteelSeries models are not read.
+- Logitech, Razer, HyperX, Corsair and Bluetooth classic devices are not supported. HyperX Cloud Jet in particular: I
+  could not find a documented protocol for it, and I will not guess one.
+
+The SteelSeries readers send only fixed, read-only status requests, and the DualSense reader never writes to the pad.
+If your device is missing and you want it added, open an issue with its name and USB vendor and product id (Device
+Manager, Details tab, Hardware Ids).
 
 ## Install
 
-Download the `.msixbundle` and the `.cer` from the [latest release](../../releases/latest), trust the certificate once
-(Install Certificate > Local Machine > Trusted People; this needs administrator rights), open the bundle, then add
-**Device batteries** in WidBar. If the installer reports a missing `Microsoft.WindowsAppRuntime.2` dependency, install
-the Windows App SDK 2.x runtime from https://aka.ms/windowsappsdk first. To update, install the newer bundle over the
-old one.
+You need Windows 11 and [WidBar](https://apps.microsoft.com/detail/9pkldnm83tp9) from the Microsoft Store.
 
-## Build
+The widget is not in the Store. Releases are signed with a self-signed certificate, so you trust it once:
 
-Needs the .NET 10 SDK, PowerShell 7 (`winget install Microsoft.PowerShell`; the build scripts and some tests use it)
-and the [WinApp CLI](https://github.com/microsoft/WinAppCli) (`winget install Microsoft.WinAppCli`).
+1. Download the `.msixbundle` and the `.cer` from the [latest release](../../releases/latest).
+2. Double-click the `.cer`, choose Install Certificate, Local Machine, and put it in **Trusted People**. This needs
+   administrator rights.
+3. Open the `.msixbundle` and install it.
+4. In WidBar, add **Device batteries** to the taskbar.
 
-```powershell
-dotnet test tests\Widgets.Core.Tests
-dotnet test tests\Widgets.Providers.Tests
-```
+If the installer complains about a missing `Microsoft.WindowsAppRuntime.2` dependency, install the Windows App SDK 2.x
+runtime from https://aka.ms/windowsappsdk and try again. To update, install the newer bundle over the old one.
 
-## Package and install
+## Settings
 
-The widget ships as a signed MSIX that WidBar finds through its `com.widbar.widget` extension. Create a self-signed
-certificate whose subject matches the `Publisher` in `src\Widgets.WidBar\Package.appxmanifest` (`winapp cert generate`),
-trust its public part (an administrator step), then:
+Open the widget's settings from WidBar. The preview at the top follows every change, and options that the chosen
+layout does not draw are greyed out.
 
-```powershell
-.\build\package-widbar.ps1 -Cert <path to the .pfx> -CertPassword <password of the .pfx>
-Add-AppxPackage artifacts\DeviceBatteries.msix
-```
+- **Layout:** vertical meters, minimal text or minimal icons, with the value size, spacing, alignment and width.
+- **Look:** labels, percent symbol, separators, charging bolt, coloured labels and values, the Windows accent colour,
+  and the battery colours (classic, colour-blind, pastel, high contrast, mono or your own).
+- **Devices:** which ones show, in what order, and a name and colour for each.
+- **Behaviour:** the low-battery level, how long a disconnected device stays on the taskbar, and how often the
+  batteries are read (every 1 to 10 minutes).
 
-(`-Cert` defaults to `%LOCALAPPDATA%\WinTaskbarWidgets-dev\devcert.pfx`, so pass it unless the certificate is there.)
-
-Raise the version for every rebuild and keep it above the installed one and above the latest release: Windows refuses
-to reinstall the same version or to go back. Raise it with `.\build\Set-Version.ps1 -Version X.Y.Z`, which changes the
-manifest, the project file and the plugin class together. WidBar must be installed; add the widget from its settings.
-
-`-Arch` chooses what is built: `x64` (the default), `arm64`, or `both`, which produces one signed x64 + ARM64
-`artifacts\DeviceBatteries.msixbundle`, the same bundle a release publishes (as `DeviceBatteries-<version>.msixbundle`). The per-architecture publish profiles are in
-`src\Widgets.WidBar\Properties\PublishProfiles`; the ARM64 package cannot be tried on an x64 PC.
-
-## Release
-
-Pushing a tag such as `v0.5.0` makes `.github/workflows/release.yml` test, stamp the version
-(`build/Set-Version.ps1`), build the signed x64 + ARM64 bundle and publish a GitHub Release. The stamp is made only
-inside the build, so after a release run `build\Set-Version.ps1 -Version <released version>` and commit the result to
-keep the source in step. Running the workflow by hand with a version builds the bundle as an artifact without
-publishing. It needs the repository secrets `SIGNING_CERT_BASE64` and `SIGNING_CERT_PASSWORD`;
-`build/New-ReleaseCert.ps1` creates the certificate and prints the commands to upload them. Keep the certificate
-files: a new certificate means everyone must trust it again.
-
-## Layout
-
-| Folder | Contents |
-|---|---|
-| `src/Widgets.Core` | Metric model, scheduler, appearance and widget settings, formatting (no UI, fully tested) |
-| `src/Widgets.Providers` | Battery readers: SteelSeries and DualSense (HID), XInput, Bluetooth LE |
-| `src/Widgets.WidBar` | The WidBar widget: taskbar tiles, flyout and settings page |
+![The settings page](docs/images/settings.png)
 
 ## Privacy
 
-Everything stays on the PC. Nothing is sent over the network. The last known battery levels are cached in the widget's
-shared data folder.
+Everything stays on your PC and nothing is sent over the network. The last known levels are cached in the widget's
+shared data folder so a sleeping device still has a value after a restart.
 
-## Licence
+## Building it yourself
 
-MIT, see [LICENSE](LICENSE). Third-party components and the ported code are covered in
-[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+See [docs/development.md](docs/development.md) for building, testing, packaging and releasing.
+
+## Credits and licence
+
+The SteelSeries and DualSense readers are ported from [Gabrielfch/taskbar-battery-widget](https://github.com/Gabrielfch/taskbar-battery-widget),
+and the DualSense status byte follows the Linux `hid-playstation` driver. Details are in
+[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The widget uses the
+[WidBar widget SDK](https://github.com/andelby/widbar-widget-template).
+
+MIT, see [LICENSE](LICENSE).
