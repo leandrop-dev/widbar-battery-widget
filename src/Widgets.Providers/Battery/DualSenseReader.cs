@@ -26,6 +26,9 @@ public sealed class DualSenseReader : IBatteryReader
     private const int BluetoothStatusIndex = 54;         // the same payload, one byte later: the Bluetooth report has a sequence byte
     private const byte CalibrationFeatureReport = 0x05;
 
+    /// <summary>True for a vendor and product id this reader knows how to read.</summary>
+    public static bool Supports(int vendorId, int productId) => vendorId == SonyVendorId && Pids.Contains(productId);
+
     private readonly IHidSystem _hid;
     private readonly TimeSpan _budget;
     private readonly Func<bool> _readBluetooth;

@@ -1,0 +1,40 @@
+name: Device request
+description: Ask for a wireless device to be supported
+title: "Device request: "
+labels: ["device request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping. The widget reads each device with its own protocol, so a new device needs its name, how it
+        connects, and what Windows sees. The last box is filled in by **Request support for a device** in the widget's
+        settings. Nothing is sent until you press Submit, and you can edit or delete any line first.
+  - type: input
+    id: device
+    attributes:
+      label: Device name and model
+      placeholder: "Brand, product name and model number"
+    validations:
+      required: true
+  - type: dropdown
+    id: connection
+    attributes:
+      label: How it connects
+      options:
+        - USB dongle or base station
+        - Bluetooth
+        - USB cable
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: shows
+    attributes:
+      label: What does Windows or the vendor app show for its battery?
+      description: For example "Settings, Bluetooth & devices shows 80%", or "the vendor app shows a percentage". If nothing shows it, say so.
+  - type: textarea
+    id: devices
+    attributes:
+      label: Devices Windows reports
+      description: Filled in by the widget. It lists vendor and product ids and names only, no serial numbers or addresses. Remove anything you do not want to share.
+      render: text

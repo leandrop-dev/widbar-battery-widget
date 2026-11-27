@@ -69,6 +69,18 @@ public sealed class WindowsHid : IHidSystem
         return result;
     }
 
+    public IReadOnlyList<HidInfo> EnumerateAll()
+    {
+        var result = new List<HidInfo>();
+        try
+        {
+            foreach (var path in InterfacePaths())
+                if (Probe(path) is { } info) result.Add(info);
+        }
+        catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException or COMException) { }
+        return result;
+    }
+
     public IHidHandle Open(HidInfo info) => new Handle(info);
 
     /// <summary>

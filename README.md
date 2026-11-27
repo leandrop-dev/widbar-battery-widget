@@ -57,8 +57,9 @@ Some limits worth knowing before you install:
 
 The SteelSeries readers send only fixed, read-only status requests, and the DualSense reader never writes to the pad
 (the Bluetooth request above is a read).
-If your device is missing and you want it added, open an issue with its name and USB vendor and product id (Device
-Manager, Details tab, Hardware Ids).
+If your device is missing and you want it added, use **Request support for a device** under Help in the widget's
+settings. It opens a GitHub issue with the list of devices Windows sees (vendor and product ids and names only, no
+serial numbers) already filled in, and nothing is sent until you submit it. There is also a Copy report button.
 
 ## Install
 

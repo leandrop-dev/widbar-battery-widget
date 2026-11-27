@@ -6,6 +6,8 @@ using WidBar.SDK;
 using Widgets.Core;
 using Widgets.Core.Appearance;
 using Widgets.Core.Settings;
+using Widgets.Providers.Battery;
+using Widgets.Providers.Battery.Hid;
 
 namespace Widgets.WidBar;
 
@@ -49,6 +51,7 @@ internal sealed class SettingsView
         ApplyLayoutSupport();
         BuildDevicesAndColours(page);
         BuildDataRefresh(page);
+        BuildHelp(page);
         page.Children.Add(Cards.Secondary("Changes are previewed live and saved only for this widget instance."));
 
         _root = new ScrollViewer { Content = page, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
@@ -215,9 +218,75 @@ internal sealed class SettingsView
         page.Children.Add(Cards.Section("Data refresh"));
         page.Children.Add(Cards.Row("", "Refresh interval", "A slower interval reduces background activity. Minutes, 1 to 10. With several copies placed, the fastest one sets the pace.",
             Number("Refresh interval (minutes)", 1, 10, _draft.RefreshMinutes, 1, v => ChangeSettings(s => s.RefreshMinutes = v))));
-        page.Children.Add(Cards.ToggleRow("", "DualSense over Bluetooth",
+        page.Children.Add(Cards.ToggleRow("", "DualSense over Bluetooth",
             "Read the battery of a DualSense connected by Bluetooth. To do this the widget asks the pad for a report that switches it to its extended report mode until it reconnects. A pad on a cable is always read.",
             _draft.ReadDualSenseBluetooth, on => ChangeSettings(s => s.ReadDualSenseBluetooth = on)));
+    }
+
+    private void BuildHelp(StackPanel page)
+    {
+        page.Children.Add(Cards.Section("Help"));
+
+        var open = new Button { Content = "Open GitHub issue" };
+        var copy = new Button { Content = "Copy report" };
+        var status = Cards.Secondary("");
+        AutomationProperties.SetName(open, "Open a GitHub issue to request support for a device");
+        AutomationProperties.SetName(copy, "Copy the device report to the clipboard");
+        open.Click += async (_, _) => await RequestDeviceAsync(open, copy, status, launch: true);
+        copy.Click += async (_, _) => await RequestDeviceAsync(open, copy, status, launch: false);
+
+        var controls = new StackPanel { Spacing = 4, HorizontalAlignment = HorizontalAlignment.Right };
+        controls.Children.Add(new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { open, copy } });
+        controls.Children.Add(status);
+        page.Children.Add(Cards.Row("", "Request support for a device",
+            "Lists the devices Windows sees (vendor and product ids and names, no serial numbers or addresses) in a new GitHub issue. Nothing is sent until you submit it in your browser. Copy report puts the same text on the clipboard.",
+            controls));
+    }
+
+    private static async Task RequestDeviceAsync(Button open, Button copy, TextBlock status, bool launch)
+    {
+        open.IsEnabled = copy.IsEnabled = false;
+        status.Text = "Looking for devices...";
+        try
+        {
+            // Opening every HID interface to read its name is slow enough to keep off the UI thread.
+            var report = await Task.Run(() => DeviceReport.Text(
+                DeviceReport.Group(new WindowsHid().EnumerateAll()), WidgetVersion(), Environment.OSVersion.Version.ToString()));
+
+            if (launch)
+            {
+                var opened = await Windows.System.Launcher.LaunchUriAsync(DeviceReport.IssueUri(report));
+                status.Text = opened ? "Opened in your browser." : "Could not open the browser. Use Copy report instead.";
+            }
+            else
+            {
+                var data = new Windows.ApplicationModel.DataTransfer.DataPackage();
+                data.SetText(report);
+                Windows.ApplicationModel.DataTransfer.Clipboard.SetContent(data);
+                status.Text = "Copied. Paste it into the issue.";
+            }
+        }
+        catch (Exception ex) when (ex is System.Runtime.InteropServices.COMException or InvalidOperationException or UnauthorizedAccessException)
+        {
+            status.Text = "That did not work. Try again.";
+        }
+        finally
+        {
+            open.IsEnabled = copy.IsEnabled = true;
+        }
+    }
+
+    private static string WidgetVersion()
+    {
+        try
+        {
+            var v = Windows.ApplicationModel.Package.Current.Id.Version;
+            return $"{v.Major}.{v.Minor}.{v.Build}";
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.Runtime.InteropServices.COMException)
+        {
+            return "unknown"; // not running as a package
+        }
     }
 
     private void BuildHideDisconnected(StackPanel page)

@@ -43,5 +43,9 @@ public interface IHidHandle : IDisposable
 public interface IHidSystem
 {
     IReadOnlyList<HidInfo> Enumerate(int vendorId);
+
+    /// <summary>Every HID interface on the PC, whatever the vendor. For the "request support for a device" report only.</summary>
+    IReadOnlyList<HidInfo> EnumerateAll() => [];
+
     IHidHandle Open(HidInfo info);
 }

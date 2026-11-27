@@ -120,6 +120,9 @@ public sealed class SteelSeriesReader : IBatteryReader
     private static readonly Dictionary<int, Family> ByPid =
         Families.SelectMany(f => f.Models.Keys.Select(pid => (pid, f))).ToDictionary(x => x.pid, x => x.f);
 
+    /// <summary>True for a vendor and product id this reader knows how to read.</summary>
+    public static bool Supports(int vendorId, int productId) => vendorId == VendorId && ByPid.ContainsKey(productId);
+
     private readonly IHidSystem _hid;
     private readonly TimeSpan _perDevice;
 
