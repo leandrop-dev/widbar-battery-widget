@@ -53,4 +53,16 @@ public class FlagVotesTests
         Assert.True(on.ReadDualSenseBluetooth);
         Assert.True(on.Clone().ReadDualSenseBluetooth);
     }
+
+    [Fact]
+    public void TheExperimentalReadersSettingIsOffByDefaultAndSurvivesARoundTripAndOldSettings()
+    {
+        Assert.False(new BatteryWidgetSettings().ExperimentalReaders);
+        Assert.False(BatteryWidgetSettings.FromJson("""{ "RefreshMinutes": 2 }""").ExperimentalReaders);
+
+        var on = BatteryWidgetSettings.FromJson(new BatteryWidgetSettings { ExperimentalReaders = true }.ToJson());
+        Assert.True(on.ExperimentalReaders);
+        Assert.True(on.Clone().ExperimentalReaders);
+        Assert.False(on.Clone().ReadDualSenseBluetooth); // the two switches are independent
+    }
 }

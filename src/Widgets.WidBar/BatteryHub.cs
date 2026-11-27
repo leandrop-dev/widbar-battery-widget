@@ -18,6 +18,7 @@ internal static class BatteryHub
     private static BatteryHistory? _history;
     private static readonly IntervalVotes Votes = new();
     private static readonly FlagVotes BluetoothPad = new();
+    private static readonly FlagVotes Experimental = new();
     private static readonly AlertVotes AlertWants = new();
     private static readonly LowBatteryAlerts Alerts = new();
     private static readonly TimeSpan DefaultInterval = TimeSpan.FromSeconds(60);
@@ -86,11 +87,24 @@ internal static class BatteryHub
         if (BluetoothPad.Set(instanceId, wanted) && wanted) Refresh();
     }
 
+    /// <summary>
+    /// Records whether one placed copy wants the experimental readers. Read while any copy wants it, by the readers that
+    /// ask <see cref="ExperimentalReaders"/>.
+    /// </summary>
+    public static void SetExperimentalReaders(string instanceId, bool wanted)
+    {
+        if (Experimental.Set(instanceId, wanted) && wanted) Refresh();
+    }
+
+    /// <summary>True while any placed copy has the experimental readers switched on.</summary>
+    public static bool ExperimentalReaders() => Experimental.Any;
+
     /// <summary>Withdraws a copy's wishes when it is removed from the taskbar.</summary>
     public static void ClearAlerts(string instanceId)
     {
         AlertWants.Remove(instanceId);
         BluetoothPad.Remove(instanceId);
+        Experimental.Remove(instanceId);
     }
 
     private static void RaiseAlerts()

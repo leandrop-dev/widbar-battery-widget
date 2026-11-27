@@ -46,6 +46,8 @@ public sealed class WindowsHid : IHidSystem
     private static extern bool HidD_GetProductString(SafeFileHandle h, StringBuilder buf, uint length);
     [DllImport("hid.dll")] [return: MarshalAs(UnmanagedType.U1)]
     private static extern bool HidD_GetFeature(SafeFileHandle h, byte[] buffer, uint length);
+    [DllImport("hid.dll")] [return: MarshalAs(UnmanagedType.U1)]
+    private static extern bool HidD_SetFeature(SafeFileHandle h, byte[] buffer, uint length);
 
     [DllImport("cfgmgr32.dll", CharSet = CharSet.Unicode)]
     private static extern int CM_Get_Device_Interface_List_SizeW(out uint size, ref Guid32 guid, string? id, uint flags);
@@ -160,6 +162,18 @@ public sealed class WindowsHid : IHidSystem
             }
             catch (OperationCanceledException) { return null; }
             catch (ObjectDisposedException) { return null; }
+        }
+
+        public async Task<bool> SetFeatureAsync(byte[] report, CancellationToken ct)
+        {
+            try
+            {
+                // Blocking like the get, so it runs off the caller's thread; the token only stops the wait.
+                return await Task.Run(() => HidD_SetFeature(_stream.SafeFileHandle, report, (uint)report.Length), ct)
+                    .WaitAsync(ct).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) { return false; }
+            catch (ObjectDisposedException) { return false; }
         }
 
         public async Task<bool> WriteAsync(byte[] report, CancellationToken ct)

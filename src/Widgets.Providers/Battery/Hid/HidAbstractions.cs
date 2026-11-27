@@ -29,6 +29,12 @@ public interface IHidHandle : IDisposable
     /// </summary>
     Task<byte[]?> GetFeatureAsync(byte reportId, CancellationToken ct) => Task.FromResult<byte[]?>(null);
 
+    /// <summary>
+    /// Sends a feature report (the first byte is the report id). Used by devices that take a status request as a feature
+    /// report and answer it in the next get. False on failure, on a cancelled wait, or when the handle cannot do it.
+    /// </summary>
+    Task<bool> SetFeatureAsync(byte[] report, CancellationToken ct) => Task.FromResult(false);
+
     /// <summary>Sends an output report. False on failure or when it did not complete within the token's lifetime.</summary>
     Task<bool> WriteAsync(byte[] report, CancellationToken ct);
 

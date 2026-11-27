@@ -32,7 +32,7 @@ public static class DeviceReport
                 g.Key.Vid, g.Key.Pid,
                 g.Select(i => i.Product.Trim()).First(),
                 [.. g.Select(i => i.UsagePage).Distinct().Order()],
-                SteelSeriesReader.Supports(g.Key.Vid, g.Key.Pid) || DualSenseReader.Supports(g.Key.Vid, g.Key.Pid))),
+                SupportedDevices.Supports(g.Key.Vid, g.Key.Pid))),
     ];
 
     /// <summary>The plain-text report the issue form and the clipboard get.</summary>

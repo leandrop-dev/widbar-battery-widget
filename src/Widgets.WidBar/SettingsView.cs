@@ -221,6 +221,10 @@ internal sealed class SettingsView
         page.Children.Add(Cards.ToggleRow("", "DualSense over Bluetooth",
             "Read the battery of a DualSense connected by Bluetooth. To do this the widget asks the pad for a report that switches it to its extended report mode until it reconnects. A pad on a cable is always read.",
             _draft.ReadDualSenseBluetooth, on => ChangeSettings(s => s.ReadDualSenseBluetooth = on)));
+
+        page.Children.Add(Cards.ToggleRow("", "Experimental device readers",
+            "Also read devices whose support is unconfirmed, even in the project it was ported from. They send only fixed status requests, but a wrong guess for your model can show a wrong level or none.",
+            _draft.ExperimentalReaders, on => ChangeSettings(s => s.ExperimentalReaders = on)));
     }
 
     private void BuildHelp(StackPanel page)

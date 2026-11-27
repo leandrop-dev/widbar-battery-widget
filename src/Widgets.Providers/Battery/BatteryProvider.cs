@@ -61,15 +61,11 @@ public sealed class BatteryProvider : IProvider
     {
         var now = _time.GetUtcNow();
         var fresh = new Dictionary<string, BatteryReading>(StringComparer.Ordinal);
-        foreach (var reader in _readers)
-        {
-            try
-            {
-                foreach (var r in await reader.ReadAsync(ct).ConfigureAwait(false)) fresh[r.Id] = r;
-            }
-            catch (OperationCanceledException) when (!ct.IsCancellationRequested) { }
-            catch (Exception ex) when (ex is not OperationCanceledException) { }
-        }
+        // All readers at once, so one slow device cannot use up the poll's time budget before the others have been asked.
+        // Merged in reader order, so when two readers report the same id the later one wins, as it did when they ran in turn.
+        var results = await Task.WhenAll(_readers.Select(reader => ReadOneAsync(reader, ct))).ConfigureAwait(false);
+        foreach (var list in results)
+            foreach (var r in list) fresh[r.Id] = r;
 
         var changed = false;
         var recorded = false;
@@ -128,6 +124,16 @@ public sealed class BatteryProvider : IProvider
         }
         return metrics;
     }
+
+    /// <summary>One reader's answer. A reader that fails or runs out of its own budget gives nothing; the poll's own cancellation still propagates.</summary>
+    private static Task<IReadOnlyList<BatteryReading>> ReadOneAsync(IBatteryReader reader, CancellationToken ct) =>
+        // Task.Run: a reader's first lines (listing the HID devices) can block, and that must not hold the others back.
+        Task.Run<IReadOnlyList<BatteryReading>>(async () =>
+        {
+            try { return await reader.ReadAsync(ct).ConfigureAwait(false); }
+            catch (OperationCanceledException) when (!ct.IsCancellationRequested) { return []; }
+            catch (Exception ex) when (ex is not OperationCanceledException) { return []; }
+        }, CancellationToken.None);
 
     private Metric Tile(BatteryReading r, double? percent, DateTimeOffset at, bool stale) =>
         new($"battery:{r.Id}", ShortName(r), MetricKind.Battery, percent, "%", Id, at, stale, Charging: r.Charging && !stale && percent is not null,

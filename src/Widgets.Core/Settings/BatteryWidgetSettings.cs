@@ -41,6 +41,12 @@ public sealed class BatteryWidgetSettings
     /// </summary>
     public bool ReadDualSenseBluetooth { get; set; }
 
+    /// <summary>
+    /// Also read the devices whose readers are marked experimental, because even the project they were ported from
+    /// lists them as unconfirmed. Off by default.
+    /// </summary>
+    public bool ExperimentalReaders { get; set; }
+
     /// <summary>How often the batteries are read, in minutes (1 to 10).</summary>
     public int RefreshMinutes { get; set; } = 1;
 
@@ -56,6 +62,7 @@ public sealed class BatteryWidgetSettings
         Order = [.. Order ?? []], Hidden = [.. Hidden ?? []], Appearance = (Appearance ?? new AppearanceSettings()).Clone(), LowThreshold = LowThreshold,
         Labels = new(Labels ?? [], StringComparer.Ordinal), Colours = new(Colours ?? [], StringComparer.Ordinal), RefreshMinutes = RefreshMinutes,
         HideAfterMinutes = HideAfterMinutes, LowBatteryAlerts = LowBatteryAlerts, ReadDualSenseBluetooth = ReadDualSenseBluetooth,
+        ExperimentalReaders = ExperimentalReaders,
     };
 
     /// <summary>The user's name for a device, or <paramref name="fallback"/> (the device's own name) when there is none.</summary>
