@@ -14,6 +14,7 @@ public static class SupportedDevices
         LogitechReader.Supports,
         LogitechHeadsetReader.Supports,
         RazerReader.Supports,
+        CorsairReader.Supports,
     ];
 
     public static bool Supports(int vendorId, int productId) => Readers.Any(supports => supports(vendorId, productId));

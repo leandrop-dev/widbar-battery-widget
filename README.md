@@ -45,6 +45,8 @@ to create.
 | Logitech G PRO X 2, G PRO X 3 and G522 LIGHTSPEED headsets | USB base station | Logitech Centurion requests | No, and only with Experimental device readers on |
 | Razer wireless mice and keyboards (Basilisk, DeathAdder, Viper, Naga, Cobra and others that answer the same report) | USB cable or 2.4 GHz dongle | Razer feature report (battery and charging) | No |
 | Razer BlackShark V2 HyperSpeed and V2 Pro (2023) | USB dongle | Razer dongle status requests | No |
+| Corsair Void, Virtuoso XT and Virtuoso SE headsets | USB receiver, or the cable for the wired XT and SE | Corsair status requests | No |
+| Corsair Void Wireless V2, Virtuoso Max Wireless and HS80 Max Wireless | USB receiver | Corsair status requests | No, and only with Experimental device readers on |
 | Xbox controllers, and other pads that report through XInput | Xbox wireless adapter or USB | XInput | No |
 | Bluetooth LE devices with the standard Battery Service | Bluetooth | Windows Bluetooth stack (GATT 0x180F) | No, not inside WidBar yet |
 
@@ -70,7 +72,10 @@ Some limits worth knowing before you install:
   right after a real reading is ignored, since Razer firmware sometimes reports it for a moment. A BlackShark V2 Pro
   dongle that was plugged in cold may stay silent until Razer Synapse or the headset has started it. Other programs
   wake it with a command that changes the dongle's state, and this widget does not send that, so it waits.
-- HyperX, Corsair and Bluetooth classic devices are not supported. HyperX Cloud Jet in particular: I
+- **Corsair headsets** are read from their USB receiver, and I have not tried any. The V2 models (Void Wireless V2,
+  Virtuoso Max, HS80 Max) are the least certain protocol, so they are only read with **Experimental device readers** on.
+  A headset that does not answer keeps its last level; it shows as off only when the receiver says so.
+- HyperX and Bluetooth classic devices are not supported. HyperX Cloud Jet in particular: I
   could not find a documented protocol for it, and I will not guess one.
 
 The SteelSeries readers send only fixed, read-only status requests, and the DualSense reader never writes to the pad
