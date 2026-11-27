@@ -32,6 +32,9 @@ public sealed class BatteryWidgetSettings
     /// <summary>A colour (#RRGGBB) the user gave a device, by metric id, used instead of the battery palette.</summary>
     public Dictionary<string, string> Colours { get; set; } = [];
 
+    /// <summary>Show a Windows notification once when a device reaches the low level (<see cref="LowThreshold"/>).</summary>
+    public bool LowBatteryAlerts { get; set; } = true;
+
     /// <summary>How often the batteries are read, in minutes (1 to 10).</summary>
     public int RefreshMinutes { get; set; } = 1;
 
@@ -46,7 +49,7 @@ public sealed class BatteryWidgetSettings
     {
         Order = [.. Order ?? []], Hidden = [.. Hidden ?? []], Appearance = (Appearance ?? new AppearanceSettings()).Clone(), LowThreshold = LowThreshold,
         Labels = new(Labels ?? [], StringComparer.Ordinal), Colours = new(Colours ?? [], StringComparer.Ordinal), RefreshMinutes = RefreshMinutes,
-        HideAfterMinutes = HideAfterMinutes,
+        HideAfterMinutes = HideAfterMinutes, LowBatteryAlerts = LowBatteryAlerts,
     };
 
     /// <summary>The user's name for a device, or <paramref name="fallback"/> (the device's own name) when there is none.</summary>

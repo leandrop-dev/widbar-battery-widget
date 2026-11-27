@@ -1,4 +1,5 @@
 using Widgets.Core;
+using Widgets.Core.Settings;
 using Widgets.Providers.Battery;
 using Widgets.Providers.Battery.Hid;
 
@@ -15,6 +16,8 @@ internal static class BatteryHub
     private static MetricScheduler? _scheduler;
     private static BatteryProvider? _provider;
     private static readonly IntervalVotes Votes = new();
+    private static readonly AlertVotes AlertWants = new();
+    private static readonly LowBatteryAlerts Alerts = new();
     private static readonly TimeSpan DefaultInterval = TimeSpan.FromSeconds(60);
 
     /// <summary>Raised on a background thread after every poll. Marshal to the UI thread before touching XAML.</summary>
@@ -35,7 +38,11 @@ internal static class BatteryHub
                 interval: Votes.Effective(DefaultInterval),
                 cache: new BatteryCache(Path.Combine(sharedDataDirectory, "battery-cache.json")));
             _store = new MetricStore();
-            _store.Changed += () => Changed?.Invoke();
+            _store.Changed += () =>
+            {
+                Changed?.Invoke();
+                RaiseAlerts();
+            };
             _scheduler = new MetricScheduler([_provider], _store);
             _scheduler.Start();
         }
@@ -56,6 +63,22 @@ internal static class BatteryHub
     {
         Votes.Remove(instanceId);
         ApplyInterval();
+    }
+
+    /// <summary>
+    /// Records what one placed copy wants from the low-battery alerts. Alerts are on while any copy wants them, so two
+    /// copies never show a notification each.
+    /// </summary>
+    public static void SetAlerts(string instanceId, BatteryWidgetSettings settings) =>
+        AlertWants.Set(instanceId, settings.LowBatteryAlerts, settings.LowThreshold, settings.Hidden, settings.Labels);
+
+    /// <summary>Withdraws a copy's wish when it is removed from the taskbar.</summary>
+    public static void ClearAlerts(string instanceId) => AlertWants.Remove(instanceId);
+
+    private static void RaiseAlerts()
+    {
+        if (AlertWants.Effective() is not { } rules) return;
+        foreach (var alert in Alerts.Evaluate(Snapshot(), rules)) Notifier.Low(alert);
     }
 
     private static void ApplyInterval()

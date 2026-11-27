@@ -39,6 +39,7 @@ public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IW
         await base.InitializeAsync(context);
         BatteryHub.Changed += OnBatteriesChanged;
         BatteryHub.SetRefresh(context.InstanceId, _settings.RefreshMinutes);
+        BatteryHub.SetAlerts(context.InstanceId, _settings);
         BatteryHub.Start(context.SharedDataDirectory);
     }
 
@@ -81,7 +82,11 @@ public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IW
     public override void OnSettingsDraftChanged(string settingsJson)
     {
         _settings = BatteryWidgetSettings.FromJson(settingsJson);
-        if (Context is { } context) BatteryHub.SetRefresh(context.InstanceId, _settings.RefreshMinutes);
+        if (Context is { } context)
+        {
+            BatteryHub.SetRefresh(context.InstanceId, _settings.RefreshMinutes);
+            BatteryHub.SetAlerts(context.InstanceId, _settings);
+        }
         RenderPreview();
         _flyout?.Refresh(Shown(), _settings);
     }
@@ -97,7 +102,11 @@ public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IW
     public override ValueTask DisposeAsync()
     {
         BatteryHub.Changed -= OnBatteriesChanged;
-        if (Context is { } context) BatteryHub.ClearRefresh(context.InstanceId);
+        if (Context is { } context)
+        {
+            BatteryHub.ClearRefresh(context.InstanceId);
+            BatteryHub.ClearAlerts(context.InstanceId);
+        }
         return ValueTask.CompletedTask;
     }
 

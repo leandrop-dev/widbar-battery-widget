@@ -202,6 +202,9 @@ internal sealed class SettingsView
         page.Children.Add(Cards.Row("", "Low battery", "Flag a device at or below this level (%)",
             Number("Flag a device as low at or below (%)", 5, 50, _draft.LowThreshold, 5, v => ChangeSettings(s => s.LowThreshold = v))));
 
+        page.Children.Add(Cards.ToggleRow("", "Low battery alerts", "Show a Windows notification once when a device reaches the low level, and again only after it has charged. Clicking it does nothing.",
+            _draft.LowBatteryAlerts, on => ChangeSettings(s => s.LowBatteryAlerts = on)));
+
         BuildHideDisconnected(page);
         page.Children.Add(_deviceList);
         RebuildDevices();
