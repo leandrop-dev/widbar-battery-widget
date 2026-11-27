@@ -18,8 +18,11 @@ to create.
 - A device that stays disconnected for 30 minutes leaves the taskbar and comes back when it reports again. You can
   change the time or turn it off. It stays in the settings list, so its name and colour are kept.
 - When you switch between game controllers, the one you stopped using steps aside for the one that is connected now.
+- A Windows notification when a device reaches the low-battery level. It shows once, and again only after the device
+  has been charged.
 - A flyout on click, with a summary and a tab for each kind of device, showing the level, a bar, the state and when it
-  was last heard from.
+  was last heard from. On a device's tab you also get its last 24 hours as a line, and an estimate of the time left
+  once the readings are steady enough to trust. A week of readings is kept.
 
 ![The flyout](docs/images/flyout.png)
 
@@ -34,14 +37,16 @@ to create.
 | SteelSeries Arctis GameBuds | USB dongle | same | No |
 | SteelSeries Arctis Nova Pro Wireless and Pro Wireless X | USB base station | same, different request | No, and the reply layout is unconfirmed |
 | SteelSeries Rival 3 Wireless | USB dongle | SteelSeries HID status request | Yes |
-| Sony DualSense and DualSense Edge | USB cable | HID input report | DualSense yes, Edge no |
+| Sony DualSense and DualSense Edge | USB cable, or Bluetooth if you turn it on | HID input report | DualSense yes (both), Edge no |
 | Xbox controllers, and other pads that report through XInput | Xbox wireless adapter or USB | XInput | No |
 | Bluetooth LE devices with the standard Battery Service | Bluetooth | Windows Bluetooth stack (GATT 0x180F) | No, not inside WidBar yet |
 
 Some limits worth knowing before you install:
 
-- **DualSense over Bluetooth is not read.** Over Bluetooth the pad sends a different report that this widget does not
-  decode. Plug it in with a cable.
+- **DualSense over Bluetooth is off until you turn it on** (Data refresh in the settings). Over Bluetooth the pad only
+  sends its battery after it is asked for a report that switches it to its extended mode, and it stays in that mode
+  until it reconnects. I could not test whether that changes how a game sees the pad, so it is your call. A pad on a
+  cable is always read.
 - **XInput only reports four coarse levels**, so an Xbox pad shows 5, 30, 65 or 100%. A wired Xbox pad has no battery
   and shows "USB".
 - **A pad in XInput mode is called "Xbox Controller"** whatever it really is (some 8BitDo pads can run in this mode),
@@ -50,7 +55,8 @@ Some limits worth knowing before you install:
 - Logitech, Razer, HyperX, Corsair and Bluetooth classic devices are not supported. HyperX Cloud Jet in particular: I
   could not find a documented protocol for it, and I will not guess one.
 
-The SteelSeries readers send only fixed, read-only status requests, and the DualSense reader never writes to the pad.
+The SteelSeries readers send only fixed, read-only status requests, and the DualSense reader never writes to the pad
+(the Bluetooth request above is a read).
 If your device is missing and you want it added, open an issue with its name and USB vendor and product id (Device
 Manager, Details tab, Hardware Ids).
 
@@ -78,15 +84,16 @@ layout does not draw are greyed out.
 - **Look:** labels, percent symbol, separators, charging bolt, coloured labels and values, the Windows accent colour,
   and the battery colours (classic, colour-blind, pastel, high contrast, mono or your own).
 - **Devices:** which ones show, in what order, and a name and colour for each.
-- **Behaviour:** the low-battery level, how long a disconnected device stays on the taskbar, and how often the
-  batteries are read (every 1 to 10 minutes).
+- **Behaviour:** the low-battery level and whether it sends a notification, how long a disconnected device stays on
+  the taskbar, how often the batteries are read (every 1 to 10 minutes), and the DualSense Bluetooth switch.
 
 ![The settings page](docs/images/settings.png)
 
 ## Privacy
 
-Everything stays on your PC and nothing is sent over the network. The last known levels are cached in the widget's
-shared data folder so a sleeping device still has a value after a restart.
+Everything stays on your PC and nothing is sent over the network. The last known levels and a week of readings are
+kept in the widget's shared data folder, so a sleeping device still has a value after a restart and the flyout has a
+history to draw.
 
 ## Building it yourself
 
