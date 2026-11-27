@@ -40,6 +40,7 @@ public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IW
         BatteryHub.Changed += OnBatteriesChanged;
         BatteryHub.SetRefresh(context.InstanceId, _settings.RefreshMinutes);
         BatteryHub.SetAlerts(context.InstanceId, _settings);
+        BatteryHub.SetBluetoothPad(context.InstanceId, _settings.ReadDualSenseBluetooth);
         BatteryHub.Start(context.SharedDataDirectory);
     }
 
@@ -86,6 +87,7 @@ public sealed class MainPlugin : WidgetPluginBase, IConfigurableWidgetPlugin, IW
         {
             BatteryHub.SetRefresh(context.InstanceId, _settings.RefreshMinutes);
             BatteryHub.SetAlerts(context.InstanceId, _settings);
+            BatteryHub.SetBluetoothPad(context.InstanceId, _settings.ReadDualSenseBluetooth);
         }
         RenderPreview();
         _flyout?.Refresh(Shown(), _settings);

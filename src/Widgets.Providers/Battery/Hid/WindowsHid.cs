@@ -44,6 +44,8 @@ public sealed class WindowsHid : IHidSystem
     [DllImport("hid.dll")] private static extern int HidP_GetCaps(nint data, ref HidpCaps caps);
     [DllImport("hid.dll", CharSet = CharSet.Unicode)] [return: MarshalAs(UnmanagedType.U1)]
     private static extern bool HidD_GetProductString(SafeFileHandle h, StringBuilder buf, uint length);
+    [DllImport("hid.dll")] [return: MarshalAs(UnmanagedType.U1)]
+    private static extern bool HidD_GetFeature(SafeFileHandle h, byte[] buffer, uint length);
 
     [DllImport("cfgmgr32.dll", CharSet = CharSet.Unicode)]
     private static extern int CM_Get_Device_Interface_List_SizeW(out uint size, ref Guid32 guid, string? id, uint flags);
@@ -55,12 +57,11 @@ public sealed class WindowsHid : IHidSystem
         var result = new List<HidInfo>();
         try
         {
-            var marker = $"vid_{vendorId:x4}";
             foreach (var path in InterfacePaths())
             {
                 // Cheap filter on the path first: opening every HID device just to read its vendor id is slow
                 // and touches hardware that has nothing to do with us.
-                if (!path.Contains(marker, StringComparison.OrdinalIgnoreCase)) continue;
+                if (!PathHasVendor(path, vendorId)) continue;
                 if (Probe(path) is { } info && info.Vid == vendorId) result.Add(info);
             }
         }
@@ -69,6 +70,15 @@ public sealed class WindowsHid : IHidSystem
     }
 
     public IHidHandle Open(HidInfo info) => new Handle(info);
+
+    /// <summary>
+    /// Whether an interface path names the vendor. USB writes it as <c>vid_054c</c>; Bluetooth as <c>vid&amp;0002054c</c>, where
+    /// 0002 says the id came from the USB vendor list (0001 would be the Bluetooth one).
+    /// </summary>
+    internal static bool PathHasVendor(string path, int vendorId) =>
+        path.Contains($"vid_{vendorId:x4}", StringComparison.OrdinalIgnoreCase)
+        || path.Contains($"vid&0002{vendorId:x4}", StringComparison.OrdinalIgnoreCase)
+        || path.Contains($"vid&0001{vendorId:x4}", StringComparison.OrdinalIgnoreCase);
 
     private static IEnumerable<string> InterfacePaths()
     {
@@ -88,7 +98,7 @@ public sealed class WindowsHid : IHidSystem
         var attr = new HiddAttributes { Size = (uint)Marshal.SizeOf<HiddAttributes>() };
         if (!HidD_GetAttributes(h, ref attr)) return null;
 
-        int usagePage = 0, usage = 0, inLen = 0, outLen = 0;
+        int usagePage = 0, usage = 0, inLen = 0, outLen = 0, featureLen = 0;
         if (HidD_GetPreparsedData(h, out var pp))
         {
             try
@@ -98,6 +108,7 @@ public sealed class WindowsHid : IHidSystem
                 {
                     usagePage = caps.UsagePage; usage = caps.Usage;
                     inLen = caps.InputReportByteLength; outLen = caps.OutputReportByteLength;
+                    featureLen = caps.FeatureReportByteLength;
                 }
             }
             finally { HidD_FreePreparsedData(pp); }
@@ -105,20 +116,38 @@ public sealed class WindowsHid : IHidSystem
 
         var product = new StringBuilder(128);
         if (!HidD_GetProductString(h, product, 256)) product.Clear();
-        return new HidInfo(path, attr.VendorId, attr.ProductId, usagePage, usage, inLen, outLen, product.ToString());
+        return new HidInfo(path, attr.VendorId, attr.ProductId, usagePage, usage, inLen, outLen, product.ToString(), featureLen);
     }
 
     private sealed class Handle : IHidHandle
     {
         private readonly FileStream _stream;
         private readonly int _inLen;
+        private readonly int _featureLen;
 
         public Handle(HidInfo info)
         {
             var h = CreateFileW(info.Path, GenericRead | GenericWrite, FileShareReadWrite, 0, OpenExisting, FileFlagOverlapped, 0);
             if (h.IsInvalid) throw new IOException("Cannot open the HID interface.", Marshal.GetLastWin32Error());
             _inLen = info.InputReportLength;
+            _featureLen = info.FeatureReportLength;
             _stream = new FileStream(h, FileAccess.ReadWrite, 1, isAsync: true);
+        }
+
+        public async Task<byte[]?> GetFeatureAsync(byte reportId, CancellationToken ct)
+        {
+            if (_featureLen <= 0) return null;
+            var buffer = new byte[_featureLen];
+            buffer[0] = reportId;
+            try
+            {
+                // The call blocks, so it runs off the caller's thread; the token only stops the wait, not the call.
+                var ok = await Task.Run(() => HidD_GetFeature(_stream.SafeFileHandle, buffer, (uint)buffer.Length), ct)
+                    .WaitAsync(ct).ConfigureAwait(false);
+                return ok ? buffer : null;
+            }
+            catch (OperationCanceledException) { return null; }
+            catch (ObjectDisposedException) { return null; }
         }
 
         public async Task<bool> WriteAsync(byte[] report, CancellationToken ct)

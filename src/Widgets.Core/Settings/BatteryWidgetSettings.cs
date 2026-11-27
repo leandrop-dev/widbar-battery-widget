@@ -35,6 +35,12 @@ public sealed class BatteryWidgetSettings
     /// <summary>Show a Windows notification once when a device reaches the low level (<see cref="LowThreshold"/>).</summary>
     public bool LowBatteryAlerts { get; set; } = true;
 
+    /// <summary>
+    /// Read a DualSense that is connected by Bluetooth. Off by default: it needs a request that leaves the pad in its
+    /// extended report mode until it reconnects. A pad on a cable is always read.
+    /// </summary>
+    public bool ReadDualSenseBluetooth { get; set; }
+
     /// <summary>How often the batteries are read, in minutes (1 to 10).</summary>
     public int RefreshMinutes { get; set; } = 1;
 
@@ -49,7 +55,7 @@ public sealed class BatteryWidgetSettings
     {
         Order = [.. Order ?? []], Hidden = [.. Hidden ?? []], Appearance = (Appearance ?? new AppearanceSettings()).Clone(), LowThreshold = LowThreshold,
         Labels = new(Labels ?? [], StringComparer.Ordinal), Colours = new(Colours ?? [], StringComparer.Ordinal), RefreshMinutes = RefreshMinutes,
-        HideAfterMinutes = HideAfterMinutes, LowBatteryAlerts = LowBatteryAlerts,
+        HideAfterMinutes = HideAfterMinutes, LowBatteryAlerts = LowBatteryAlerts, ReadDualSenseBluetooth = ReadDualSenseBluetooth,
     };
 
     /// <summary>The user's name for a device, or <paramref name="fallback"/> (the device's own name) when there is none.</summary>

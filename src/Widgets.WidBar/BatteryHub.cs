@@ -17,6 +17,7 @@ internal static class BatteryHub
     private static BatteryProvider? _provider;
     private static BatteryHistory? _history;
     private static readonly IntervalVotes Votes = new();
+    private static readonly FlagVotes BluetoothPad = new();
     private static readonly AlertVotes AlertWants = new();
     private static readonly LowBatteryAlerts Alerts = new();
     private static readonly TimeSpan DefaultInterval = TimeSpan.FromSeconds(60);
@@ -39,7 +40,7 @@ internal static class BatteryHub
             var hid = new WindowsHid();
             _history = new BatteryHistory(Path.Combine(sharedDataDirectory, "battery-history.json"));
             _provider = new BatteryProvider(
-                [new SteelSeriesReader(hid), new DualSenseReader(hid), new XInputReader(), new BluetoothLeBatteryReader()],
+                [new SteelSeriesReader(hid), new DualSenseReader(hid, readBluetooth: () => BluetoothPad.Any), new XInputReader(), new BluetoothLeBatteryReader()],
                 interval: Votes.Effective(DefaultInterval),
                 cache: new BatteryCache(Path.Combine(sharedDataDirectory, "battery-cache.json")),
                 history: _history);
@@ -78,8 +79,19 @@ internal static class BatteryHub
     public static void SetAlerts(string instanceId, BatteryWidgetSettings settings) =>
         AlertWants.Set(instanceId, settings.LowBatteryAlerts, settings.LowThreshold, settings.Hidden, settings.Labels);
 
-    /// <summary>Withdraws a copy's wish when it is removed from the taskbar.</summary>
-    public static void ClearAlerts(string instanceId) => AlertWants.Remove(instanceId);
+    /// <summary>Records whether one placed copy wants a Bluetooth DualSense read. It is read while any copy wants it.</summary>
+    public static void SetBluetoothPad(string instanceId, bool wanted)
+    {
+        // Turning it on reads now: a pad that is already connected should not wait out the interval.
+        if (BluetoothPad.Set(instanceId, wanted) && wanted) Refresh();
+    }
+
+    /// <summary>Withdraws a copy's wishes when it is removed from the taskbar.</summary>
+    public static void ClearAlerts(string instanceId)
+    {
+        AlertWants.Remove(instanceId);
+        BluetoothPad.Remove(instanceId);
+    }
 
     private static void RaiseAlerts()
     {

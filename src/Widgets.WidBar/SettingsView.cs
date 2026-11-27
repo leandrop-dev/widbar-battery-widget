@@ -215,6 +215,9 @@ internal sealed class SettingsView
         page.Children.Add(Cards.Section("Data refresh"));
         page.Children.Add(Cards.Row("", "Refresh interval", "A slower interval reduces background activity. Minutes, 1 to 10. With several copies placed, the fastest one sets the pace.",
             Number("Refresh interval (minutes)", 1, 10, _draft.RefreshMinutes, 1, v => ChangeSettings(s => s.RefreshMinutes = v))));
+        page.Children.Add(Cards.ToggleRow("", "DualSense over Bluetooth",
+            "Read the battery of a DualSense connected by Bluetooth. To do this the widget asks the pad for a report that switches it to its extended report mode until it reconnects. A pad on a cable is always read.",
+            _draft.ReadDualSenseBluetooth, on => ChangeSettings(s => s.ReadDualSenseBluetooth = on)));
     }
 
     private void BuildHideDisconnected(StackPanel page)
