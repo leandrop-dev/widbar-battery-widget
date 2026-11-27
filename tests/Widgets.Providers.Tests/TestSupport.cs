@@ -23,9 +23,18 @@ internal sealed class RecordingHandle(
     Func<byte[]?>? read = null,
     Func<byte, byte[]?>? onGetFeature = null,
     Func<byte[], bool>? onSetFeature = null,
-    Func<byte[], bool>? onWrite = null) : Widgets.Providers.Battery.Hid.IHidHandle
+    Func<byte[], bool>? onWrite = null,
+    Func<byte, int, byte[]?>? onGetInputReport = null) : Widgets.Providers.Battery.Hid.IHidHandle
 {
     public List<byte[]> Written { get; } = [];
+    public List<(byte ReportId, int Length)> InputReportRequests { get; } = [];
+
+    public Task<byte[]?> GetInputReportAsync(byte reportId, int length, CancellationToken ct)
+    {
+        InputReportRequests.Add((reportId, length));
+        return Task.FromResult(onGetInputReport?.Invoke(reportId, length));
+    }
+
     public List<byte[]> SetFeatures { get; } = [];
     public List<byte> FeatureRequests { get; } = [];
     public int Drains { get; private set; }

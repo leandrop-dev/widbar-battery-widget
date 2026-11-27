@@ -47,6 +47,8 @@ public sealed class WindowsHid : IHidSystem
     [DllImport("hid.dll")] [return: MarshalAs(UnmanagedType.U1)]
     private static extern bool HidD_GetFeature(SafeFileHandle h, byte[] buffer, uint length);
     [DllImport("hid.dll")] [return: MarshalAs(UnmanagedType.U1)]
+    private static extern bool HidD_GetInputReport(SafeFileHandle h, byte[] buffer, uint length);
+    [DllImport("hid.dll")] [return: MarshalAs(UnmanagedType.U1)]
     private static extern bool HidD_SetFeature(SafeFileHandle h, byte[] buffer, uint length);
 
     [DllImport("cfgmgr32.dll", CharSet = CharSet.Unicode)]
@@ -96,6 +98,20 @@ public sealed class WindowsHid : IHidSystem
         try
         {
             var ok = await Task.Run(() => HidD_GetFeature(h, buffer, (uint)buffer.Length), ct).WaitAsync(ct).ConfigureAwait(false);
+            return ok ? buffer : null;
+        }
+        catch (OperationCanceledException) { return null; }
+        catch (ObjectDisposedException) { return null; }
+    }
+
+    private static async Task<byte[]?> GetInputReportAsync(SafeFileHandle h, byte reportId, int length, CancellationToken ct)
+    {
+        if (length <= 0) return null;
+        var buffer = new byte[length];
+        buffer[0] = reportId;
+        try
+        {
+            var ok = await Task.Run(() => HidD_GetInputReport(h, buffer, (uint)buffer.Length), ct).WaitAsync(ct).ConfigureAwait(false);
             return ok ? buffer : null;
         }
         catch (OperationCanceledException) { return null; }
@@ -197,6 +213,9 @@ public sealed class WindowsHid : IHidSystem
 
         public Task<byte[]?> GetFeatureAsync(byte reportId, CancellationToken ct) =>
             WindowsHid.GetFeatureAsync(_stream.SafeFileHandle, _featureLen, reportId, ct);
+
+        public Task<byte[]?> GetInputReportAsync(byte reportId, int length, CancellationToken ct) =>
+            WindowsHid.GetInputReportAsync(_stream.SafeFileHandle, reportId, length, ct);
 
         public Task<bool> SetFeatureAsync(byte[] report, CancellationToken ct) =>
             WindowsHid.SetFeatureAsync(_stream.SafeFileHandle, report, ct);

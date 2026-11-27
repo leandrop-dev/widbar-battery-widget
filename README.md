@@ -47,6 +47,8 @@ to create.
 | Razer BlackShark V2 HyperSpeed and V2 Pro (2023) | USB dongle | Razer dongle status requests | No |
 | Corsair Void, Virtuoso XT and Virtuoso SE headsets | USB receiver, or the cable for the wired XT and SE | Corsair status requests | No |
 | Corsair Void Wireless V2, Virtuoso Max Wireless and HS80 Max Wireless | USB receiver | Corsair status requests | No, and only with Experimental device readers on |
+| HyperX Cloud Flight, Cloud II (HP), Cloud Alpha 2 and Cloud Flight 2 Wireless | USB dongle | HyperX status requests | No |
+| HyperX Cloud II (Kingston) and Cloud Alpha Wireless | USB dongle | HyperX status requests | No, and only with Experimental device readers on |
 | Xbox controllers, and other pads that report through XInput | Xbox wireless adapter or USB | XInput | No |
 | Bluetooth LE devices with the standard Battery Service | Bluetooth | Windows Bluetooth stack (GATT 0x180F) | No, not inside WidBar yet |
 
@@ -75,11 +77,17 @@ Some limits worth knowing before you install:
 - **Corsair headsets** are read from their USB receiver, and I have not tried any. The V2 models (Void Wireless V2,
   Virtuoso Max, HS80 Max) are the least certain protocol, so they are only read with **Experimental device readers** on.
   A headset that does not answer keeps its last level; it shows as off only when the receiver says so.
-- HyperX and Bluetooth classic devices are not supported. HyperX Cloud Jet in particular: I
-  could not find a documented protocol for it, and I will not guess one.
+- **HyperX headsets** are read from their USB dongle, and I have not tried any. The Cloud II Kingston revision and the
+  Cloud Alpha Wireless are the least certain protocols, so they are only read with **Experimental device readers** on.
+  The Cloud Flight dongle stays silent while the headset is off, so for that one model silence shows as off. While it
+  charges the level is unknown, so the last one is kept. The Cloud III and Cloud Alpha S have no battery query and are
+  not read.
+- Bluetooth classic devices are not supported. HyperX Cloud Jet in particular: I could not find a documented protocol
+  for it, and I will not guess one.
 
-The SteelSeries readers send only fixed, read-only status requests, and the DualSense reader never writes to the pad
-(the Bluetooth request above is a read).
+Every reader sends only fixed, read-only status requests from a table in its own code, and the tests check that nothing
+else is ever sent. The DualSense and DualShock 4 readers never write to the pad (the Bluetooth request above is a
+read).
 If your device is missing and you want it added, use **Request support for a device** under Help in the widget's
 settings. It opens a GitHub issue with the list of devices Windows sees (vendor and product ids and names only, no
 serial numbers) already filled in, and nothing is sent until you submit it. There is also a Copy report button.
