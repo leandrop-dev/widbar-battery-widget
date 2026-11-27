@@ -23,15 +23,18 @@ public sealed class BatteryProvider : IProvider
     private readonly Dictionary<string, DateTimeOffset> _lastConnected = new(StringComparer.Ordinal);
 
     private readonly BatteryCache? _cache;
+    private readonly BatteryHistory? _history;
 
     /// <param name="cache">Optional: remembers last known levels between runs, for devices that are asleep at startup.</param>
+    /// <param name="history">Optional: keeps a week of live readings, for the flyout's sparkline and time-left estimate.</param>
     public BatteryProvider(IReadOnlyList<IBatteryReader> readers, TimeSpan? interval = null, TimeProvider? time = null,
-        BatteryCache? cache = null)
+        BatteryCache? cache = null, BatteryHistory? history = null)
     {
         _readers = readers;
         Interval = interval ?? TimeSpan.FromSeconds(60);
         _time = time ?? TimeProvider.System;
         _cache = cache;
+        _history = history;
 
         // Remembered devices start out as "silent with a last value", which is shown dimmed until they report again.
         foreach (var c in cache?.Load(_time.GetUtcNow()) ?? [])
@@ -69,6 +72,7 @@ public sealed class BatteryProvider : IProvider
         }
 
         var changed = false;
+        var recorded = false;
         foreach (var (id, r) in fresh)
         {
             _known[id] = r;
@@ -78,7 +82,10 @@ public sealed class BatteryProvider : IProvider
             if (r.Percent is null) continue;
             changed |= !_lastGood.TryGetValue(id, out var before) || before.Reading.Percent != r.Percent;
             _lastGood[id] = new Seen(r, now);
+            // Only live readings are history; a remembered or stale value is not a sighting.
+            if (_history is not null && r.Connected) recorded |= _history.Record($"battery:{id}", r.Percent.Value, r.Charging, now);
         }
+        if (recorded) _history!.Save();
         // Only when a level actually changed, so a steady device does not rewrite the file every minute.
         if (changed)
             _cache?.Save(_lastGood.Values.Select(s => new CachedBattery(

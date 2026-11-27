@@ -15,6 +15,7 @@ internal static class BatteryHub
     private static MetricStore? _store;
     private static MetricScheduler? _scheduler;
     private static BatteryProvider? _provider;
+    private static BatteryHistory? _history;
     private static readonly IntervalVotes Votes = new();
     private static readonly AlertVotes AlertWants = new();
     private static readonly LowBatteryAlerts Alerts = new();
@@ -25,6 +26,9 @@ internal static class BatteryHub
 
     public static IReadOnlyList<Metric> Snapshot() => _store?.Snapshot() ?? [];
 
+    /// <summary>A device's readings from the last week, oldest first, by metric id (for example "battery:steelseries:1830").</summary>
+    public static IReadOnlyList<HistorySample> History(string metricId) => _history?.Samples(metricId) ?? [];
+
     /// <summary>Starts polling. Safe to call from every copy: only the first call does anything.</summary>
     /// <param name="sharedDataDirectory">Where the last known levels are remembered between runs, so a sleeping mouse still has a value.</param>
     public static void Start(string sharedDataDirectory)
@@ -33,10 +37,12 @@ internal static class BatteryHub
         {
             if (_scheduler is not null) return;
             var hid = new WindowsHid();
+            _history = new BatteryHistory(Path.Combine(sharedDataDirectory, "battery-history.json"));
             _provider = new BatteryProvider(
                 [new SteelSeriesReader(hid), new DualSenseReader(hid), new XInputReader(), new BluetoothLeBatteryReader()],
                 interval: Votes.Effective(DefaultInterval),
-                cache: new BatteryCache(Path.Combine(sharedDataDirectory, "battery-cache.json")));
+                cache: new BatteryCache(Path.Combine(sharedDataDirectory, "battery-cache.json")),
+                history: _history);
             _store = new MetricStore();
             _store.Changed += () =>
             {

@@ -229,19 +229,41 @@ internal sealed class FlyoutView
 
         // A device that is switched off is reported as updated "now"; that is not a sighting, so show nothing.
         var seen = m.Updated is { } at && (m.Value is not null || !string.IsNullOrEmpty(m.Text)) ? DeviceStatus.Ago(now - at) : "--";
+        // The history is read once: the estimate and the line come from the same readings.
+        var history = BatteryHub.History(m.Id);
+        var left = m.Stale || m.Value is null ? null : DischargeEstimate.TimeLeft(history, DateTimeOffset.UtcNow);
+
         var columns = new Grid { ColumnSpacing = 12 };
-        for (var c = 0; c < 3; c++) columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        var statCount = left is null ? 3 : 4;
+        for (var c = 0; c < statCount; c++) columns.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
         AddStat(columns, 0, "Level", MetricFormat.Value(m), colours.Value);
         AddStat(columns, 1, "State", state, null);
         AddStat(columns, 2, "Last seen", seen, null);
+        if (left is { } remaining) AddStat(columns, 3, "Time left", DischargeEstimate.Describe(remaining), null);
 
         var body = new StackPanel { Spacing = 10 };
         body.Children.Add(title);
         body.Children.Add(columns);
         if (m.Value is not null) body.Children.Add(LevelBar(m, colours.Accent));
+        body.Children.Add(HistoryLine(history, colours.Accent));
 
         var status = DeviceStatus.Describe(m, now, _settings.LowThreshold);
         return Finish(Cards.Card(body, new Thickness(16, 12, 16, 12)), m, name, status);
+    }
+
+    /// <summary>The last 24 hours as a line with a small caption, or a note while there is not enough history to draw one.</summary>
+    private static UIElement HistoryLine(IReadOnlyList<HistorySample> history, Rgb colour)
+    {
+        var segments = Sparkline.Segments(history, DateTimeOffset.UtcNow, TimeSpan.FromHours(24));
+        var panel = new StackPanel { Spacing = 2 };
+        if (!Sparkline.HasLine(segments))
+        {
+            panel.Children.Add(Cards.Secondary("Collecting history"));
+            return panel;
+        }
+        panel.Children.Add(SparklineView.Build(segments, colour));
+        panel.Children.Add(Cards.Secondary("Last 24 hours"));
+        return panel;
     }
 
     private static void AddStat(Grid grid, int column, string label, string value, Rgb? colour)

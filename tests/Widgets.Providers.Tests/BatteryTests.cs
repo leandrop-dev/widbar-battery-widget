@@ -554,24 +554,6 @@ public class BluetoothLeBatteryTests
 
 public class BatteryCacheTests
 {
-    private sealed class FakeTime(DateTimeOffset now) : TimeProvider
-    {
-        public DateTimeOffset Now { get; set; } = now;
-        public override DateTimeOffset GetUtcNow() => Now;
-    }
-
-    private sealed class Reader(Func<IReadOnlyList<BatteryReading>> read) : IBatteryReader
-    {
-        public Task<IReadOnlyList<BatteryReading>> ReadAsync(CancellationToken ct) => Task.FromResult(read());
-    }
-
-    private sealed class TempPath : IDisposable
-    {
-        public string Dir { get; } = Path.Combine(Path.GetTempPath(), "bc-" + Guid.NewGuid().ToString("N"));
-        public string File_ => Path.Combine(Dir, "sub", "battery-cache.json");
-        public void Dispose() { try { Directory.Delete(Dir, true); } catch (IOException) { } }
-    }
-
     private static readonly DateTimeOffset T0 = new(2026, 11, 25, 12, 0, 0, TimeSpan.Zero);
 
     private static BatteryReading Mouse(int? pct) =>
