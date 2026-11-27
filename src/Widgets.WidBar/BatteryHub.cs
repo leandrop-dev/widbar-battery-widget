@@ -42,7 +42,8 @@ internal static class BatteryHub
             _history = new BatteryHistory(Path.Combine(sharedDataDirectory, "battery-history.json"));
             _provider = new BatteryProvider(
                 [new SteelSeriesReader(hid), new DualSenseReader(hid, readBluetooth: () => BluetoothPad.Any),
-                 new DualShock4Reader(hid, readBluetooth: () => BluetoothPad.Any), new LogitechReader(hid), new XInputReader(), new BluetoothLeBatteryReader()],
+                 new DualShock4Reader(hid, readBluetooth: () => BluetoothPad.Any), new LogitechCombinedReader(new LogitechReader(hid), new LogitechHeadsetReader(hid, experimental: ExperimentalReaders)),
+                 new XInputReader(), new BluetoothLeBatteryReader()],
                 interval: Votes.Effective(DefaultInterval),
                 cache: new BatteryCache(Path.Combine(sharedDataDirectory, "battery-cache.json")),
                 history: _history);

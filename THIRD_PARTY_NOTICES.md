@@ -39,4 +39,5 @@ status requests; none writes settings to a device. None has been tested on real 
 |---|---|
 | `DualShock4Reader` | `taskbar_battery_widget/sony.py` (DualShock 4 part only) |
 | `LogitechReader`, `Hidpp`, `HidppChannel` | `taskbar_battery_widget/hidpp.py` (without its merging of a receiver entry with a cabled one) |
+| `LogitechHeadsetReader`, `LogitechCombinedReader`, `HeadsetProtocols` | `taskbar_battery_widget/logitech_headsets.py`, and the `dedupe_logitech` rule of `wireless.py`. The first file says its protocol facts come from public notes (HeadsetControl and Solaar) and that it is an independent implementation, with no code and no calibration table copied. |
 | `DeviceNaming` | `taskbar_battery_widget/naming.py` (`sanitize_name`, and the keyword lists of `kind_from_name` for the kinds this widget has) |

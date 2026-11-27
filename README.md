@@ -40,6 +40,9 @@ to create.
 | Sony DualSense and DualSense Edge | USB cable, or Bluetooth if you turn it on | HID input report | DualSense yes (both), Edge no |
 | Sony DualShock 4 (both revisions) and its USB wireless adapter | USB cable or adapter, or Bluetooth if you turn it on | HID input report | No |
 | Logitech mice and keyboards (HID++ 2.0 and 1.0) | Unifying, Bolt, Lightspeed or Nano receiver, or a cable | Logitech HID++ status request | No |
+| Logitech G533, G535, G633, G733, G933, G935 and G PRO headsets | USB base station | HID++ cell voltage request | No |
+| Logitech ASTRO A50 Gen 5 | USB base station | Astro status request | No |
+| Logitech G PRO X 2, G PRO X 3 and G522 LIGHTSPEED headsets | USB base station | Logitech Centurion requests | No, and only with Experimental device readers on |
 | Xbox controllers, and other pads that report through XInput | Xbox wireless adapter or USB | XInput | No |
 | Bluetooth LE devices with the standard Battery Service | Bluetooth | Windows Bluetooth stack (GATT 0x180F) | No, not inside WidBar yet |
 
@@ -56,8 +59,11 @@ Some limits worth knowing before you install:
   and two such pads in the same slot share one entry. I have not tested any 8BitDo pad.
 - **Wireless headsets need their USB dongle plugged in.** Over plain Bluetooth the SteelSeries models are not read.
 - **Logitech mice and keyboards** are read through their receiver, or over a cable, when they speak HID++. I have not
-  tried one. A mouse plugged in to charge can show up as a second entry until the first one is hidden, and Logitech
-  headsets are not read yet.
+  tried one. A mouse plugged in to charge can show up as a second entry until the first one is hidden.
+- **Logitech and Astro headsets** are read from their USB base station, and I have not tried any. The G PRO X 2, G PRO
+  X 3 and G522 use the least certain protocol, which the project this was ported from marks as beta, so they are only
+  read when you turn on **Experimental device readers** (Data refresh in the settings). A headset that does not answer
+  keeps its last level instead of showing as off.
 - Razer, HyperX, Corsair and Bluetooth classic devices are not supported. HyperX Cloud Jet in particular: I
   could not find a documented protocol for it, and I will not guess one.
 
@@ -92,7 +98,7 @@ layout does not draw are greyed out.
   and the battery colours (classic, colour-blind, pastel, high contrast, mono or your own).
 - **Devices:** which ones show, in what order, and a name and colour for each.
 - **Behaviour:** the low-battery level and whether it sends a notification, how long a disconnected device stays on
-  the taskbar, how often the batteries are read (every 1 to 10 minutes), and the PlayStation Bluetooth switch.
+  the taskbar, how often the batteries are read (every 1 to 10 minutes), the PlayStation Bluetooth switch and the experimental readers switch.
 
 ![The settings page](docs/images/settings.png)
 
