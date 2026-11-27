@@ -41,7 +41,8 @@ internal static class BatteryHub
             var hid = new WindowsHid();
             _history = new BatteryHistory(Path.Combine(sharedDataDirectory, "battery-history.json"));
             _provider = new BatteryProvider(
-                [new SteelSeriesReader(hid), new DualSenseReader(hid, readBluetooth: () => BluetoothPad.Any), new XInputReader(), new BluetoothLeBatteryReader()],
+                [new SteelSeriesReader(hid), new DualSenseReader(hid, readBluetooth: () => BluetoothPad.Any),
+                 new DualShock4Reader(hid, readBluetooth: () => BluetoothPad.Any), new XInputReader(), new BluetoothLeBatteryReader()],
                 interval: Votes.Effective(DefaultInterval),
                 cache: new BatteryCache(Path.Combine(sharedDataDirectory, "battery-cache.json")),
                 history: _history);

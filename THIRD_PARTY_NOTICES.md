@@ -29,5 +29,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-The MIT text above is the standard licence text with the upstream copyright line. Check it against the
-upstream `LICENSE` file before the first release.
+The text above was compared with the upstream `LICENSE` file at commit `04a2a342679a13977112eaa66ef1742e52b94cff`
+and matches it, apart from blank lines and trailing spaces.
+
+Readers ported from that project, each from the file named, as of the same commit. Each reader sends only fixed
+status requests; none writes settings to a device. None has been tested on real hardware unless the README says so.
+
+| Reader here | Upstream file |
+|---|---|
+| `DualShock4Reader` | `taskbar_battery_widget/sony.py` (DualShock 4 part only) |

@@ -38,12 +38,14 @@ to create.
 | SteelSeries Arctis Nova Pro Wireless and Pro Wireless X | USB base station | same, different request | No, and the reply layout is unconfirmed |
 | SteelSeries Rival 3 Wireless | USB dongle | SteelSeries HID status request | Yes |
 | Sony DualSense and DualSense Edge | USB cable, or Bluetooth if you turn it on | HID input report | DualSense yes (both), Edge no |
+| Sony DualShock 4 (both revisions) and its USB wireless adapter | USB cable or adapter, or Bluetooth if you turn it on | HID input report | No |
 | Xbox controllers, and other pads that report through XInput | Xbox wireless adapter or USB | XInput | No |
 | Bluetooth LE devices with the standard Battery Service | Bluetooth | Windows Bluetooth stack (GATT 0x180F) | No, not inside WidBar yet |
 
 Some limits worth knowing before you install:
 
-- **DualSense over Bluetooth is off until you turn it on** (Data refresh in the settings). Over Bluetooth the pad only
+- **PlayStation controllers over Bluetooth are off until you turn them on** (Data refresh in the settings). This covers
+  the DualSense and the DualShock 4, and I have only tried it on a DualSense. Over Bluetooth the pad only
   sends its battery after it is asked for a report that switches it to its extended mode, and it stays in that mode
   until it reconnects. I could not test whether that changes how a game sees the pad, so it is your call. A pad on a
   cable is always read.
@@ -86,7 +88,7 @@ layout does not draw are greyed out.
   and the battery colours (classic, colour-blind, pastel, high contrast, mono or your own).
 - **Devices:** which ones show, in what order, and a name and colour for each.
 - **Behaviour:** the low-battery level and whether it sends a notification, how long a disconnected device stays on
-  the taskbar, how often the batteries are read (every 1 to 10 minutes), and the DualSense Bluetooth switch.
+  the taskbar, how often the batteries are read (every 1 to 10 minutes), and the PlayStation Bluetooth switch.
 
 ![The settings page](docs/images/settings.png)
 
