@@ -19,8 +19,35 @@ dotnet test tests\Widgets.Providers.Tests
 | Folder | Contents |
 |---|---|
 | `src/Widgets.Core` | Metric model, scheduler, appearance and widget settings, formatting (no UI, fully tested) |
-| `src/Widgets.Providers` | Battery readers: SteelSeries and DualSense (HID), XInput, Bluetooth LE |
+| `src/Widgets.Providers` | Battery readers: HID devices (SteelSeries, Sony, Logitech, Razer, Corsair, HyperX), XInput, Bluetooth LE |
 | `src/Widgets.WidBar` | The WidBar widget: taskbar tiles, flyout and settings page |
+
+## Adding a reader
+
+A reader is a class that implements `IBatteryReader` in `src/Widgets.Providers/Battery`, with its protocol helpers (byte
+layouts, tables, decoding) in a folder of their own as pure functions, so they can be tested without a device. Take the
+`IHidSystem` in the constructor; `IHidHandle` offers read, write, feature report and input report calls.
+
+- **Requests come from a table.** Build every request from a fixed table that refuses anything else, and check the frame
+  again just before writing it. A reader reads status and never writes a setting. If a protocol cannot be read without a
+  state-changing command, leave that command out and say so in the README.
+- **Failure is quiet.** `ReadAsync` returns an empty list on any failure and throws only when the poll itself is
+  cancelled. A device that stays silent gives no reading, so its last level is kept; report it as disconnected only
+  when the protocol answers that explicitly.
+- **Keep to a budget.** The readers run in parallel inside the 5 second poll. Give each device its own budget (the
+  existing readers use 1.5 seconds or less) and never share a handle with another reader.
+- **Register it twice.** Add its static `Supports(vendorId, productId)` to `SupportedDevices`, which the "request
+  support" report uses to tell known devices from missing ones, and add it to the list in `BatteryHub.Start`. When two
+  readers give the same id, the later one wins.
+- **Least certain protocols** take a `Func<bool>` and read only when `BatteryHub.ExperimentalReaders` says so. That is
+  the "Experimental device readers" switch, which is off by default.
+- **Test with a simulator.** `RecordingHandle` and `RecordingHidSystem` in `tests/Widgets.Providers.Tests/TestSupport.cs`
+  script a device's replies and record everything sent to it. Assert that every frame written is on the table, and
+  cover the happy path, a disconnected device, a silent one, a collection of the wrong shape and the experimental gate.
+  Then break the code on purpose (drop the gate, the cache, the charging rule) and check that a test fails.
+- **Credit the source.** Port only from sources under a licence that allows it, such as the MIT project in
+  `THIRD_PARTY_NOTICES.md`, and copy nothing from GPL projects. Read the upstream file at a pinned commit rather than
+  from memory, add a row to the notices, and add the device to the README table as not tested until someone confirms it.
 
 ## Package and install a local build
 

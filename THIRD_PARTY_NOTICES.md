@@ -3,7 +3,7 @@
 ## taskbar-battery-widget (MIT)
 
 Parts of this project port the battery reader protocols from https://github.com/Gabrielfch/taskbar-battery-widget
-(SteelSeries, DualSense and related device handling).
+(SteelSeries, DualSense, DualShock 4, Logitech, Razer, Corsair and HyperX devices, and related device handling).
 
 ```
 MIT License
@@ -37,6 +37,8 @@ status requests; none writes settings to a device. None has been tested on real 
 
 | Reader here | Upstream file |
 |---|---|
+| `SteelSeriesReader` | `taskbar_battery_widget/steelseries.py` (the Arctis, Nova and Rival models this widget lists in the README) |
+| `DualSenseReader` | `taskbar_battery_widget/dualsense.py` |
 | `DualShock4Reader` | `taskbar_battery_widget/sony.py` (DualShock 4 part only) |
 | `LogitechReader`, `Hidpp`, `HidppChannel` | `taskbar_battery_widget/hidpp.py` (without its merging of a receiver entry with a cabled one) |
 | `LogitechHeadsetReader`, `LogitechCombinedReader`, `HeadsetProtocols` | `taskbar_battery_widget/logitech_headsets.py`, and the `dedupe_logitech` rule of `wireless.py`. The first file says its protocol facts come from public notes (HeadsetControl and Solaar) and that it is an independent implementation, with no code and no calibration table copied. |

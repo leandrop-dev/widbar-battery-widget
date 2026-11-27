@@ -133,8 +133,9 @@ See [docs/development.md](docs/development.md) for building, testing, packaging 
 
 ## Credits and licence
 
-The SteelSeries and DualSense readers are ported from [Gabrielfch/taskbar-battery-widget](https://github.com/Gabrielfch/taskbar-battery-widget),
-and the DualSense status byte follows the Linux `hid-playstation` driver. Details are in
+The SteelSeries, DualSense, DualShock 4, Logitech, Razer, Corsair and HyperX readers are ported from
+[Gabrielfch/taskbar-battery-widget](https://github.com/Gabrielfch/taskbar-battery-widget), and the DualSense status byte
+follows the Linux `hid-playstation` driver. Details, with the file each reader comes from, are in
 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). The widget uses the
 [WidBar widget SDK](https://github.com/andelby/widbar-widget-template).
 
