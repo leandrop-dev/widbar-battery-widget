@@ -119,8 +119,15 @@ public static class Sparkline
         return segments;
     }
 
-    /// <summary>True when there is a line to draw: at least one segment with two points.</summary>
-    public static bool HasLine(IReadOnlyList<SparkSegment> segments) => segments.Any(s => s.Points.Count >= 2);
+    /// <summary>A line narrower than this share of the window (about half an hour of 24) is a dot, not history yet.</summary>
+    public const double MinLineSpan = 0.02;
+
+    /// <summary>True when there is a line worth drawing: points that reach across at least <see cref="MinLineSpan"/> of the window.</summary>
+    public static bool HasLine(IReadOnlyList<SparkSegment> segments)
+    {
+        var xs = segments.SelectMany(s => s.Points).Select(p => p.X).ToList();
+        return xs.Count >= 2 && xs.Max() - xs.Min() >= MinLineSpan;
+    }
 
     private static SparkPoint Point(double x, int percent) =>
         new(Math.Clamp(x, 0, 1), 1 - Math.Clamp(percent, 0, 100) / 100.0);

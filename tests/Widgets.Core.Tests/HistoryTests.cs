@@ -181,6 +181,17 @@ public class SparklineTests
     }
 
     [Fact]
+    public void ARecentReadingCarriedToNowIsStillADotNotALineUntilThereIsAboutHalfAnHour()
+    {
+        // One reading two minutes ago is carried to the right edge: two points, but they span almost nothing.
+        Assert.False(Sparkline.HasLine(Sparkline.Segments([At(0.03, 60)], Now, Day)));
+        // Four readings over ten minutes: still too short.
+        Assert.False(Sparkline.HasLine(Sparkline.Segments([At(0.2, 61), At(0.15, 60), At(0.1, 60), At(0.03, 59)], Now, Day)));
+        // An hour of readings is a line.
+        Assert.True(Sparkline.HasLine(Sparkline.Segments([At(1, 61), At(0.5, 60), At(0.03, 59)], Now, Day)));
+    }
+
+    [Fact]
     public void FutureReadingsAreIgnoredAndLevelsAreClamped()
     {
         var segments = Sparkline.Segments([At(2, 120), At(-3, 50)], Now, Day);
