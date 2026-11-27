@@ -39,6 +39,7 @@ to create.
 | SteelSeries Rival 3 Wireless | USB dongle | SteelSeries HID status request | Yes |
 | Sony DualSense and DualSense Edge | USB cable, or Bluetooth if you turn it on | HID input report | DualSense yes (both), Edge no |
 | Sony DualShock 4 (both revisions) and its USB wireless adapter | USB cable or adapter, or Bluetooth if you turn it on | HID input report | No |
+| Logitech mice and keyboards (HID++ 2.0 and 1.0) | Unifying, Bolt, Lightspeed or Nano receiver, or a cable | Logitech HID++ status request | No |
 | Xbox controllers, and other pads that report through XInput | Xbox wireless adapter or USB | XInput | No |
 | Bluetooth LE devices with the standard Battery Service | Bluetooth | Windows Bluetooth stack (GATT 0x180F) | No, not inside WidBar yet |
 
@@ -54,7 +55,10 @@ Some limits worth knowing before you install:
 - **A pad in XInput mode is called "Xbox Controller"** whatever it really is (some 8BitDo pads can run in this mode),
   and two such pads in the same slot share one entry. I have not tested any 8BitDo pad.
 - **Wireless headsets need their USB dongle plugged in.** Over plain Bluetooth the SteelSeries models are not read.
-- Logitech, Razer, HyperX, Corsair and Bluetooth classic devices are not supported. HyperX Cloud Jet in particular: I
+- **Logitech mice and keyboards** are read through their receiver, or over a cable, when they speak HID++. I have not
+  tried one. A mouse plugged in to charge can show up as a second entry until the first one is hidden, and Logitech
+  headsets are not read yet.
+- Razer, HyperX, Corsair and Bluetooth classic devices are not supported. HyperX Cloud Jet in particular: I
   could not find a documented protocol for it, and I will not guess one.
 
 The SteelSeries readers send only fixed, read-only status requests, and the DualSense reader never writes to the pad

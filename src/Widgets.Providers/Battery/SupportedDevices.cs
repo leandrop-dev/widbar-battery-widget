@@ -11,6 +11,7 @@ public static class SupportedDevices
         SteelSeriesReader.Supports,
         DualSenseReader.Supports,
         DualShock4Reader.Supports,
+        LogitechReader.Supports,
     ];
 
     public static bool Supports(int vendorId, int productId) => Readers.Any(supports => supports(vendorId, productId));

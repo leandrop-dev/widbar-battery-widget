@@ -38,3 +38,5 @@ status requests; none writes settings to a device. None has been tested on real 
 | Reader here | Upstream file |
 |---|---|
 | `DualShock4Reader` | `taskbar_battery_widget/sony.py` (DualShock 4 part only) |
+| `LogitechReader`, `Hidpp`, `HidppChannel` | `taskbar_battery_widget/hidpp.py` (without its merging of a receiver entry with a cabled one) |
+| `DeviceNaming` | `taskbar_battery_widget/naming.py` (`sanitize_name`, and the keyword lists of `kind_from_name` for the kinds this widget has) |
