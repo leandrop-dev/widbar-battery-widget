@@ -54,4 +54,11 @@ public interface IHidSystem
     IReadOnlyList<HidInfo> EnumerateAll() => [];
 
     IHidHandle Open(HidInfo info);
+
+    /// <summary>
+    /// Opens an interface for feature reports only. Windows keeps mouse and keyboard collections to itself, refusing a read/write
+    /// open, but still answers feature requests on a handle opened with no access. The handle cannot read or write input and
+    /// output reports. Fakes with no such distinction use <see cref="Open"/>.
+    /// </summary>
+    IHidHandle OpenFeatureOnly(HidInfo info) => Open(info);
 }

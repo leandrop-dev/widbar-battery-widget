@@ -85,6 +85,53 @@ public sealed class WindowsHid : IHidSystem
 
     public IHidHandle Open(HidInfo info) => new Handle(info);
 
+    public IHidHandle OpenFeatureOnly(HidInfo info) => new FeatureHandle(info);
+
+    // Both calls block, so they run off the caller's thread; the token only stops the wait, not the call.
+    private static async Task<byte[]?> GetFeatureAsync(SafeFileHandle h, int length, byte reportId, CancellationToken ct)
+    {
+        if (length <= 0) return null;
+        var buffer = new byte[length];
+        buffer[0] = reportId;
+        try
+        {
+            var ok = await Task.Run(() => HidD_GetFeature(h, buffer, (uint)buffer.Length), ct).WaitAsync(ct).ConfigureAwait(false);
+            return ok ? buffer : null;
+        }
+        catch (OperationCanceledException) { return null; }
+        catch (ObjectDisposedException) { return null; }
+    }
+
+    private static async Task<bool> SetFeatureAsync(SafeFileHandle h, byte[] report, CancellationToken ct)
+    {
+        try { return await Task.Run(() => HidD_SetFeature(h, report, (uint)report.Length), ct).WaitAsync(ct).ConfigureAwait(false); }
+        catch (OperationCanceledException) { return false; }
+        catch (ObjectDisposedException) { return false; }
+    }
+
+    /// <summary>
+    /// An interface opened with no access: it answers feature reports only, which is all that mouse and keyboard collections allow.
+    /// </summary>
+    private sealed class FeatureHandle : IHidHandle
+    {
+        private readonly SafeFileHandle _handle;
+        private readonly int _featureLen;
+
+        public FeatureHandle(HidInfo info)
+        {
+            _handle = CreateFileW(info.Path, 0, FileShareReadWrite, 0, OpenExisting, 0, 0);
+            if (_handle.IsInvalid) throw new IOException("Cannot open the HID interface.", Marshal.GetLastWin32Error());
+            _featureLen = info.FeatureReportLength;
+        }
+
+        public Task<byte[]?> GetFeatureAsync(byte reportId, CancellationToken ct) => WindowsHid.GetFeatureAsync(_handle, _featureLen, reportId, ct);
+        public Task<bool> SetFeatureAsync(byte[] report, CancellationToken ct) => WindowsHid.SetFeatureAsync(_handle, report, ct);
+        public Task<bool> WriteAsync(byte[] report, CancellationToken ct) => Task.FromResult(false);
+        public Task<byte[]?> ReadAsync(CancellationToken ct) => Task.FromResult<byte[]?>(null);
+        public Task DrainAsync() => Task.CompletedTask;
+        public void Dispose() => _handle.Dispose();
+    }
+
     /// <summary>
     /// Whether an interface path names the vendor. USB writes it as <c>vid_054c</c>; Bluetooth as <c>vid&amp;0002054c</c>, where
     /// 0002 says the id came from the USB vendor list (0001 would be the Bluetooth one).
@@ -148,33 +195,11 @@ public sealed class WindowsHid : IHidSystem
             _stream = new FileStream(h, FileAccess.ReadWrite, 1, isAsync: true);
         }
 
-        public async Task<byte[]?> GetFeatureAsync(byte reportId, CancellationToken ct)
-        {
-            if (_featureLen <= 0) return null;
-            var buffer = new byte[_featureLen];
-            buffer[0] = reportId;
-            try
-            {
-                // The call blocks, so it runs off the caller's thread; the token only stops the wait, not the call.
-                var ok = await Task.Run(() => HidD_GetFeature(_stream.SafeFileHandle, buffer, (uint)buffer.Length), ct)
-                    .WaitAsync(ct).ConfigureAwait(false);
-                return ok ? buffer : null;
-            }
-            catch (OperationCanceledException) { return null; }
-            catch (ObjectDisposedException) { return null; }
-        }
+        public Task<byte[]?> GetFeatureAsync(byte reportId, CancellationToken ct) =>
+            WindowsHid.GetFeatureAsync(_stream.SafeFileHandle, _featureLen, reportId, ct);
 
-        public async Task<bool> SetFeatureAsync(byte[] report, CancellationToken ct)
-        {
-            try
-            {
-                // Blocking like the get, so it runs off the caller's thread; the token only stops the wait.
-                return await Task.Run(() => HidD_SetFeature(_stream.SafeFileHandle, report, (uint)report.Length), ct)
-                    .WaitAsync(ct).ConfigureAwait(false);
-            }
-            catch (OperationCanceledException) { return false; }
-            catch (ObjectDisposedException) { return false; }
-        }
+        public Task<bool> SetFeatureAsync(byte[] report, CancellationToken ct) =>
+            WindowsHid.SetFeatureAsync(_stream.SafeFileHandle, report, ct);
 
         public async Task<bool> WriteAsync(byte[] report, CancellationToken ct)
         {

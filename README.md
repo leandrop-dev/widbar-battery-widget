@@ -43,6 +43,8 @@ to create.
 | Logitech G533, G535, G633, G733, G933, G935 and G PRO headsets | USB base station | HID++ cell voltage request | No |
 | Logitech ASTRO A50 Gen 5 | USB base station | Astro status request | No |
 | Logitech G PRO X 2, G PRO X 3 and G522 LIGHTSPEED headsets | USB base station | Logitech Centurion requests | No, and only with Experimental device readers on |
+| Razer wireless mice and keyboards (Basilisk, DeathAdder, Viper, Naga, Cobra and others that answer the same report) | USB cable or 2.4 GHz dongle | Razer feature report (battery and charging) | No |
+| Razer BlackShark V2 HyperSpeed and V2 Pro (2023) | USB dongle | Razer dongle status requests | No |
 | Xbox controllers, and other pads that report through XInput | Xbox wireless adapter or USB | XInput | No |
 | Bluetooth LE devices with the standard Battery Service | Bluetooth | Windows Bluetooth stack (GATT 0x180F) | No, not inside WidBar yet |
 
@@ -64,7 +66,11 @@ Some limits worth knowing before you install:
   X 3 and G522 use the least certain protocol, which the project this was ported from marks as beta, so they are only
   read when you turn on **Experimental device readers** (Data refresh in the settings). A headset that does not answer
   keeps its last level instead of showing as off.
-- Razer, HyperX, Corsair and Bluetooth classic devices are not supported. HyperX Cloud Jet in particular: I
+- **Razer devices** are read when they answer Razer's 90-byte status report, and I have not tried any. A level of 0%
+  right after a real reading is ignored, since Razer firmware sometimes reports it for a moment. A BlackShark V2 Pro
+  dongle that was plugged in cold may stay silent until Razer Synapse or the headset has started it. Other programs
+  wake it with a command that changes the dongle's state, and this widget does not send that, so it waits.
+- HyperX, Corsair and Bluetooth classic devices are not supported. HyperX Cloud Jet in particular: I
   could not find a documented protocol for it, and I will not guess one.
 
 The SteelSeries readers send only fixed, read-only status requests, and the DualSense reader never writes to the pad
